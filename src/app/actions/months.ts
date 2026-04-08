@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Database } from "@/lib/database.types"
 import { revalidateDashboardShell } from "./revalidation"
+import { syncRecurringExpensesForMonth } from "./finance"
 
 export type MonthData = Database['public']['Tables']['months']['Row']
 
@@ -43,15 +44,18 @@ export async function createMonth(formData: FormData) {
     // If making this one OPEN, we should probably close others first.
     await supabase.from("months").update({ status: 'CLOSED' }).eq("user_id", user.id).eq("status", 'OPEN')
 
-    const { error } = await supabase.from("months").insert({
+    const { data: insertedMonth, error } = await supabase.from("months").insert({
         user_id: user.id,
         name,
         start_date,
         end_date,
         status: 'OPEN'
-    })
+    }).select("*").single()
 
     if (error) throw new Error(error.message)
+    if (insertedMonth) {
+        await syncRecurringExpensesForMonth(insertedMonth.id)
+    }
     revalidateDashboardShell()
 }
 

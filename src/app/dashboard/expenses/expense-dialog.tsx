@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { CurrencyInput } from "@/components/ui/currency-input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createMonthExpense } from "@/app/actions/finance"
+import { createMonthExpense, updateMonthExpense } from "@/app/actions/finance"
 import { getCards } from "@/app/actions/cards"
 import { toast } from "sonner"
 import { MonthData } from "@/app/actions/months"
@@ -27,13 +27,13 @@ export function ExpenseDialog({
     expense,
     open: externalOpen,
     onOpenChange: externalOnOpenChange,
-    trigger
+    trigger,
 }: {
-    month?: MonthData,
-    mode?: "create" | "edit" | "duplicate",
-    expense?: any,
-    open?: boolean,
-    onOpenChange?: (open: boolean) => void,
+    month?: MonthData
+    mode?: "create" | "edit" | "duplicate"
+    expense?: any
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
     trigger?: React.ReactNode
 }) {
     const isControlled = externalOpen !== undefined
@@ -50,14 +50,16 @@ export function ExpenseDialog({
     const [cards, setCards] = useState<any[]>([])
     const [months, setMonths] = useState<MonthData[]>([])
 
-    const isDuplicate = mode === 'duplicate'
+    const isDuplicate = mode === "duplicate"
+    const isEdit = mode === "edit"
+    const initialMonthId = expense?.month_id || month?.id || ""
 
     const [selectedMonthId, setSelectedMonthId] = useState("")
     const [description, setDescription] = useState("")
     const [amountValue, setAmountValue] = useState<number | undefined>(undefined)
 
-    const [paymentMethod, setPaymentMethod] = useState('NONE')
-    const [status, setStatus] = useState<'PLANNED' | 'PAID'>('PLANNED')
+    const [paymentMethod, setPaymentMethod] = useState("NONE")
+    const [status, setStatus] = useState<"PLANNED" | "PAID">("PLANNED")
     const [paidAt, setPaidAt] = useState("")
     const [dueDate, setDueDate] = useState("")
     const [cardId, setCardId] = useState("")
@@ -66,50 +68,50 @@ export function ExpenseDialog({
 
     const [loading, setLoading] = useState(false)
 
-    // Reset or initialize state when dialog opens
     useEffect(() => {
-        if (open) {
-            getCards().then(setCards)
-            import("@/app/actions/months").then(m => m.getMonths().then(res => {
-                setMonths(res)
+        if (!open) return
 
-                // Initialize fields based on mode
-                if (isDuplicate && expense) {
-                    const fallbackMonthId = expense.month_id || (month ? month.id : "")
-                    setSelectedMonthId(fallbackMonthId)
-                    setDescription(expense.description)
-                    setAmountValue(expense.amount)
-                    setStatus(expense.status)
-                    setPaymentMethod(expense.payment_method || 'NONE')
-                    setPaidAt(expense.paid_at ? format(new Date(expense.paid_at), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"))
-                    setDueDate(expense.due_date || format(new Date(), "yyyy-MM-dd"))
-                    setCardId(expense.card_id || "")
-                    setKeepTemplate(false)
-                    // On duplicate: show is_excluded from original, but it's only saved if hidden mode ON
-                    setIsExcluded(!!expense.is_excluded)
-                } else {
-                    if (month) setSelectedMonthId(month.id)
-                    setDescription("")
-                    setAmountValue(undefined)
-                    setStatus('PLANNED')
-                    setPaymentMethod('NONE')
-                    setPaidAt(format(new Date(), "yyyy-MM-dd"))
-                    setDueDate(format(new Date(), "yyyy-MM-dd"))
-                    setCardId("")
-                    setIsExcluded(false)
-                }
-            }))
+        if (expense && (isDuplicate || isEdit)) {
+            setSelectedMonthId(initialMonthId)
+            setDescription(expense.description || "")
+            setAmountValue(expense.amount)
+            setStatus(expense.status)
+            setPaymentMethod(expense.payment_method || "NONE")
+            setPaidAt(
+                expense.paid_at
+                    ? format(new Date(expense.paid_at), "yyyy-MM-dd")
+                    : format(new Date(), "yyyy-MM-dd")
+            )
+            setDueDate(expense.due_date || format(new Date(), "yyyy-MM-dd"))
+            setCardId(expense.card_id || "")
+            setKeepTemplate(false)
+            setIsExcluded(!!expense.is_excluded)
+        } else {
+            setSelectedMonthId(month ? month.id : "")
+            setDescription("")
+            setAmountValue(undefined)
+            setStatus("PLANNED")
+            setPaymentMethod("NONE")
+            setPaidAt(format(new Date(), "yyyy-MM-dd"))
+            setDueDate(format(new Date(), "yyyy-MM-dd"))
+            setCardId("")
+            setIsExcluded(false)
         }
-    }, [open, month, expense, isDuplicate])
 
-    function handleStatusChange(newStatus: 'PLANNED' | 'PAID') {
+        getCards().then(setCards)
+        import("@/app/actions/months").then((module) =>
+            module.getMonths().then(setMonths)
+        )
+    }, [open, month, expense, isDuplicate, isEdit, initialMonthId])
+
+    function handleStatusChange(newStatus: "PLANNED" | "PAID") {
         setStatus(newStatus)
-        if (newStatus === 'PLANNED') {
-            setPaymentMethod('NONE')
+        if (newStatus === "PLANNED") {
+            setPaymentMethod("NONE")
             setPaidAt("")
             setCardId("")
         } else {
-            setPaymentMethod(paymentMethod === 'NONE' ? '' : paymentMethod)
+            setPaymentMethod(paymentMethod === "NONE" ? "" : paymentMethod)
             setPaidAt(format(new Date(), "yyyy-MM-dd"))
         }
     }
@@ -118,14 +120,14 @@ export function ExpenseDialog({
         setSelectedMonthId(newMonthId)
         if (!isDuplicate || !expense?.due_date) return
 
-        const targetMonth = months.find(m => m.id === newMonthId)
+        const targetMonth = months.find((m) => m.id === newMonthId)
         if (targetMonth) {
-            const [oYear, oMonth, oDay] = expense.due_date.split('-').map(Number)
-            const [tYear, tMonth] = targetMonth.start_date.split('-').map(Number)
+            const [, oMonth, oDay] = expense.due_date.split("-").map(Number)
+            const [tYear, tMonth] = targetMonth.start_date.split("-").map(Number)
 
             const daysInTargetMonth = new Date(tYear, tMonth, 0).getDate()
             const adjustedDay = Math.min(oDay, daysInTargetMonth)
-            const newDueDateStr = `${tYear}-${String(tMonth).padStart(2, '0')}-${String(adjustedDay).padStart(2, '0')}`
+            const newDueDateStr = `${tYear}-${String(tMonth).padStart(2, "0")}-${String(adjustedDay).padStart(2, "0")}`
 
             setDueDate(newDueDateStr)
         }
@@ -137,12 +139,10 @@ export function ExpenseDialog({
         formData.append("status", status)
         formData.append("payment_method", paymentMethod)
 
-        // Due date added as explicit field in the form below
-
-        if (status === 'PAID' && paidAt) {
+        if (status === "PAID" && paidAt) {
             formData.append("paid_at", new Date(paidAt).toISOString())
         }
-        if (status === 'PAID' && paymentMethod === 'CREDIT_CARD' && cardId) {
+        if (status === "PAID" && paymentMethod === "CREDIT_CARD" && cardId) {
             formData.append("card_id", cardId)
         }
 
@@ -150,18 +150,28 @@ export function ExpenseDialog({
             formData.append("template_id", expense.template_id)
         }
 
-        // Pass hidden mode and is_excluded for server-side security check
         formData.append("hidden_mode_enabled", String(hiddenModeEnabled))
         if (hiddenModeEnabled) {
             formData.append("is_excluded", String(isExcluded))
         }
 
         try {
-            await createMonthExpense(formData)
-            if (status === 'PAID' && paymentMethod === 'CREDIT_CARD') {
-                toast.success(isDuplicate ? "Despesa duplicada! (Valor considerado na fatura do cartão)" : "Despesa adicionada! (Valor considerado na fatura do cartão)", { duration: 6000 })
+            if (isEdit) {
+                formData.append("expense_id", expense.id)
+                await updateMonthExpense(formData)
+                toast.success("Despesa atualizada com sucesso!")
             } else {
-                toast.success(isDuplicate ? "Despesa duplicada com sucesso!" : "Despesa adicionada com sucesso!")
+                await createMonthExpense(formData)
+                if (status === "PAID" && paymentMethod === "CREDIT_CARD") {
+                    toast.success(
+                        isDuplicate
+                            ? "Despesa duplicada! (Valor considerado na fatura do cartão)"
+                            : "Despesa adicionada! (Valor considerado na fatura do cartão)",
+                        { duration: 6000 }
+                    )
+                } else {
+                    toast.success(isDuplicate ? "Despesa duplicada com sucesso!" : "Despesa adicionada com sucesso!")
+                }
             }
             setOpen(false)
         } catch (e: any) {
@@ -170,6 +180,9 @@ export function ExpenseDialog({
             setLoading(false)
         }
     }
+
+    const submitLabel = isEdit ? "Salvar Alterações" : isDuplicate ? "Duplicar" : "Salvar"
+    const titleLabel = isEdit ? "Editar Despesa" : isDuplicate ? "Duplicar Despesa" : "Registrar Despesa"
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -180,24 +193,27 @@ export function ExpenseDialog({
             )}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isDuplicate ? "Duplicar Despesa" : "Registrar Despesa"}</DialogTitle>
+                    <DialogTitle>{titleLabel}</DialogTitle>
                 </DialogHeader>
                 <form action={onSubmit} className="grid grid-cols-2 gap-4">
-
                     {isDuplicate && (
-                        <div className="space-y-2 col-span-2 bg-slate-50 p-3 rounded-lg border">
-                            <Label htmlFor="month_id" className="font-semibold text-blue-600">Mês de Destino</Label>
+                        <div className="col-span-2 space-y-2 rounded-lg border bg-slate-50 p-3">
+                            <Label htmlFor="month_id" className="font-semibold text-blue-600">
+                                Mês de Destino
+                            </Label>
                             <Select value={selectedMonthId} onValueChange={handleMonthChange}>
                                 <SelectTrigger className="bg-white">
                                     <SelectValue placeholder="Selecione o mês" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {months.map(m => (
+                                    {months.map((m) => (
                                         <SelectItem key={m.id} value={m.id}>
                                             <div className="flex items-center gap-2">
                                                 <span>{m.name}</span>
-                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${m.status === 'OPEN' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>
-                                                    {m.status === 'OPEN' ? 'OPEN' : 'CLOSED'}
+                                                <span
+                                                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${m.status === "OPEN" ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-600"}`}
+                                                >
+                                                    {m.status === "OPEN" ? "OPEN" : "CLOSED"}
                                                 </span>
                                             </div>
                                         </SelectItem>
@@ -208,60 +224,62 @@ export function ExpenseDialog({
                     )}
 
                     {!isDuplicate && (
-                        <div className="space-y-2 col-span-2">
+                        <div className="col-span-2 space-y-2">
                             <Label htmlFor="month_id">Mês de Referência</Label>
                             <Select value={selectedMonthId} onValueChange={handleMonthChange}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o mês" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {months.map(m => (
-                                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                    {months.map((m) => (
+                                        <SelectItem key={m.id} value={m.id}>
+                                            {m.name}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     )}
 
-                    <div className="space-y-2 col-span-2">
+                    <div className="col-span-2 space-y-2">
                         <Label htmlFor="description">Descrição</Label>
-                        <Input id="description" name="description" required placeholder="Ex: Mercado" value={description} onChange={e => setDescription(e.target.value)} />
+                        <Input
+                            id="description"
+                            name="description"
+                            required
+                            placeholder="Ex: Mercado"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
                     </div>
 
-                    <div className="space-y-2 col-span-1">
+                    <div className="col-span-1 space-y-2">
                         <Label htmlFor="amount">Valor</Label>
-                        {/* If using a controlled CurrencyInput or re-keying to reset default value */}
-                        <CurrencyInput id="amount" name="amount" required placeholder="R$ 0,00" key={`amt-${amountValue}`} defaultValue={amountValue} />
+                        <CurrencyInput
+                            id="amount"
+                            name="amount"
+                            required
+                            placeholder="R$ 0,00"
+                            key={`amt-${amountValue}`}
+                            defaultValue={amountValue}
+                        />
                     </div>
 
-                    <div className="space-y-2 col-span-1">
+                    <div className="col-span-1 space-y-2">
                         <Label htmlFor="due_date">Data de Vencimento</Label>
-                        <Input id="due_date" name="due_date" type="date" required value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                        <Input
+                            id="due_date"
+                            name="due_date"
+                            type="date"
+                            required
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                        />
                     </div>
 
-                    <div className="space-y-2 col-span-2">
-                        <Label>Status</Label>
-                        <div className="flex bg-slate-100 p-1 rounded-lg">
-                            <button
-                                type="button"
-                                onClick={() => handleStatusChange('PLANNED')}
-                                className={`flex-1 text-sm py-1.5 rounded-md transition-all ${status === 'PLANNED' ? 'bg-white shadow-sm font-medium text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                Prevista
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleStatusChange('PAID')}
-                                className={`flex-1 text-sm py-1.5 rounded-md transition-all ${status === 'PAID' ? 'bg-white shadow-sm font-medium text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                Paga
-                            </button>
-                        </div>
-                    </div>
-
-                    {status === 'PAID' && (
+                    {(isEdit ? status === "PAID" : status === "PAID") && (
                         <>
-                            <div className="space-y-2 col-span-1">
+                            <div className="col-span-1 space-y-2">
                                 <Label htmlFor="payment_method">Método de Pagamento</Label>
                                 <Select required value={paymentMethod} onValueChange={setPaymentMethod}>
                                     <SelectTrigger>
@@ -276,21 +294,29 @@ export function ExpenseDialog({
                                 </Select>
                             </div>
 
-                            <div className="space-y-2 col-span-1">
+                            <div className="col-span-1 space-y-2">
                                 <Label htmlFor="paid_at">Pago em</Label>
-                                <Input id="paid_at" type="date" required value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+                                <Input
+                                    id="paid_at"
+                                    type="date"
+                                    required
+                                    value={paidAt}
+                                    onChange={(e) => setPaidAt(e.target.value)}
+                                />
                             </div>
 
-                            {paymentMethod === 'CREDIT_CARD' && (
-                                <div className="space-y-2 col-span-2 flex flex-col">
+                            {paymentMethod === "CREDIT_CARD" && (
+                                <div className="col-span-2 flex flex-col space-y-2">
                                     <Label htmlFor="card_id">Cartão de Crédito</Label>
                                     <Select required value={cardId} onValueChange={setCardId}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecione o cartão..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {cards.map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            {cards.map((card) => (
+                                                <SelectItem key={card.id} value={card.id}>
+                                                    {card.name}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -299,8 +325,28 @@ export function ExpenseDialog({
                         </>
                     )}
 
+                    <div className="col-span-2 space-y-2">
+                        <Label>Status</Label>
+                        <div className="flex rounded-lg bg-slate-100 p-1">
+                            <button
+                                type="button"
+                                onClick={() => handleStatusChange("PLANNED")}
+                                className={`flex-1 rounded-md py-1.5 text-sm transition-all ${status === "PLANNED" ? "bg-white font-medium text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                            >
+                                Prevista
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleStatusChange("PAID")}
+                                className={`flex-1 rounded-md py-1.5 text-sm transition-all ${status === "PAID" ? "bg-white font-medium text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                            >
+                                Paga
+                            </button>
+                        </div>
+                    </div>
+
                     {isDuplicate && expense?.template_id && (
-                        <div className="col-span-2 flex items-center gap-2 mt-2 bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200 text-sm">
+                        <div className="col-span-2 mt-2 flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-800">
                             <input
                                 type="checkbox"
                                 id="keepTemplate"
@@ -308,28 +354,34 @@ export function ExpenseDialog({
                                 onChange={(e) => setKeepTemplate(e.target.checked)}
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
-                            <Label htmlFor="keepTemplate" className="font-medium cursor-pointer">
+                            <Label htmlFor="keepTemplate" className="cursor-pointer font-medium">
                                 Manter vínculo com o item fixo original
                             </Label>
                         </div>
                     )}
 
                     {hiddenModeEnabled && (
-                        <div className="col-span-2 flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
+                        <div className="col-span-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
                             <button
                                 type="button"
                                 role="switch"
                                 aria-checked={isExcluded}
-                                onClick={() => setIsExcluded(v => !v)}
-                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isExcluded ? 'bg-slate-700' : 'bg-slate-300'}`}
+                                onClick={() => setIsExcluded((value) => !value)}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isExcluded ? "bg-slate-700" : "bg-slate-300"}`}
                             >
-                                <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isExcluded ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                                <span
+                                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isExcluded ? "translate-x-4" : "translate-x-0.5"}`}
+                                />
                             </button>
                             <div className="flex items-center gap-1.5">
                                 <Calculator className="h-4 w-4 text-slate-500" />
                                 <div>
-                                    <Label className="cursor-pointer text-sm font-medium text-slate-700">Fora do cálculo</Label>
-                                    <p className="text-[11px] text-slate-500">Aparece na lista, mas não entra nos totais do mês.</p>
+                                    <Label className="cursor-pointer text-sm font-medium text-slate-700">
+                                        Fora do cálculo
+                                    </Label>
+                                    <p className="text-[11px] text-slate-500">
+                                        Aparece na lista, mas não entra nos totais do mês.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -337,7 +389,7 @@ export function ExpenseDialog({
 
                     <div className="col-span-2 mt-2">
                         <Button type="submit" disabled={loading} className="w-full">
-                            {isDuplicate ? "Duplicar" : "Salvar"}
+                            {submitLabel}
                         </Button>
                     </div>
                 </form>

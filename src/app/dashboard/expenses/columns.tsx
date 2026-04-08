@@ -14,6 +14,9 @@ export type Expense = {
     payment_method: string
     card_id: string | null
     template_id: string | null
+    installment_plan_id: string | null
+    installment_number: number | null
+    installment_total: number | null
     paid_at: string | null
     is_excluded: boolean
     month_id: string

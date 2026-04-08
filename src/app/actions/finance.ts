@@ -3,11 +3,16 @@
 import { cache } from "react"
 import { format } from "date-fns"
 import { createClient } from "@/lib/supabase/server"
-import { MonthData } from "./months"
+import type { MonthData } from "./months"
 import { sortExpenses } from "@/lib/utils"
 import { revalidateDashboardData } from "./revalidation"
 import { Database } from "@/lib/database.types"
 import { measureServerTiming } from "@/lib/server-timing"
+import {
+    buildInstallmentRowsToInsert,
+    type InstallmentExpenseRow,
+    type InstallmentPlanRow,
+} from "./installment-scheduling"
 
 type ExpenseRow = Database["public"]["Tables"]["month_expenses"]["Row"]
 type CardBalanceRow = {
@@ -180,6 +185,50 @@ async function generateTemplatesForMonth(month: MonthData, userId: string) {
     return newExpenses.length
 }
 
+export async function syncInstallmentPlansForUser(userId: string) {
+    return measureServerTiming("sync-installment-plans", async () => {
+        const supabase = await createClient() as any
+        const [{ data: months }, { data: plans }, { data: installments }] = await Promise.all([
+            supabase
+                .from("months")
+                .select("*")
+                .eq("user_id", userId)
+                .order("start_date", { ascending: true }),
+            supabase
+                .from("expense_installment_plans")
+                .select("*")
+                .eq("user_id", userId)
+                .eq("is_active", true)
+                .eq("is_archived", false)
+                .order("created_at", { ascending: true }),
+            supabase
+                .from("month_expenses")
+                .select("month_id, installment_plan_id, installment_number")
+                .eq("user_id", userId)
+                .not("installment_plan_id", "is", null),
+        ])
+
+        const insertRows = buildInstallmentRowsToInsert(
+            (months || []) as MonthData[],
+            (plans || []) as InstallmentPlanRow[],
+            (installments || []) as InstallmentExpenseRow[]
+        )
+
+        if (insertRows.length === 0) {
+            return 0
+        }
+
+        const { error } = await supabase.from("month_expenses").insert(insertRows)
+
+        if (error) {
+            throw new Error(error.message)
+        }
+
+        revalidateDashboardData()
+        return insertRows.length
+    })
+}
+
 export async function syncRecurringExpensesForMonth(monthId: string) {
     return measureServerTiming("sync-recurring-expenses", async () => {
         const userId = await getCurrentUserId()
@@ -199,7 +248,11 @@ export async function syncRecurringExpensesForMonth(monthId: string) {
             return { insertedCount: 0 }
         }
 
-        const insertedCount = await generateTemplatesForMonth(month as MonthData, userId)
+        const [templateCount, installmentCount] = await Promise.all([
+            generateTemplatesForMonth(month as MonthData, userId),
+            syncInstallmentPlansForUser(userId),
+        ])
+        const insertedCount = templateCount + installmentCount
 
         if (insertedCount > 0) {
             revalidateDashboardData()
@@ -294,6 +347,10 @@ export async function createMonthExpense(formData: FormData) {
 export async function updateMonthExpense(formData: FormData) {
     const supabase = await createClient() as any
     const expenseId = formData.get("expense_id") as string
+    const month_id = formData.get("month_id") as string
+    const due_date = formData.get("due_date") as string
+    const description = formData.get("description") as string
+    const amount = parseFloat(formData.get("amount") as string)
     const status = formData.get("status") as "PLANNED" | "PAID"
     let paymentMethod = formData.get("payment_method") as "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
     let cardId = (formData.get("card_id") as string) || null
@@ -331,6 +388,10 @@ export async function updateMonthExpense(formData: FormData) {
     }
 
     const updatePayload: Record<string, unknown> = {
+        month_id,
+        due_date,
+        description,
+        amount,
         status,
         payment_method: paymentMethod,
         card_id: cardId,

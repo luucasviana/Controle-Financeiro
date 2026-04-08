@@ -36,9 +36,16 @@ export function ExpenseItem({ expense, cardsMap }: { expense: Expense, cardsMap?
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                     <Icon className={`h-5 w-5 shrink-0 ${isPaid ? 'text-green-500' : 'text-slate-300'}`} />
-                    <span className="font-medium text-slate-800 truncate">
-                        {expense.description}
-                    </span>
+                    <div className="flex min-w-0 items-center gap-2">
+                        <span className="font-medium text-slate-800 truncate">
+                            {expense.description}
+                        </span>
+                        {expense.installment_plan_id && expense.installment_number && expense.installment_total && (
+                            <Badge variant="outline" className="text-[10px] shrink-0">
+                                Parcela {expense.installment_number}/{expense.installment_total}
+                            </Badge>
+                        )}
+                    </div>
                     {excludedVisual && (
                         <Badge variant="secondary" className="text-[10px] shrink-0 flex items-center gap-1 text-slate-500">
                             <Calculator className="h-3 w-3" />

@@ -5,7 +5,7 @@ Aplicativo web para planejamento e controle financeiro pessoal, com interface em
 ## Funcionalidades principais
 - Controle focado em um único usuário.
 - Meses financeiros customizados com período de início e fim.
-- Receitas recorrentes, despesas recorrentes e despesas avulsas.
+- Receitas recorrentes, despesas recorrentes fixas, parcelamentos de despesas e despesas avulsas.
 - Separação entre gastos à vista e consumo de cartão.
 - Projeção dos próximos meses.
 - Modo oculto para receitas e despesas fora do cálculo.
@@ -63,6 +63,18 @@ values ('<SEU_USER_ID>', 'Salário', 5000.00, true);
 
 insert into public.recurring_expense_templates (user_id, description, amount, day_of_month, is_active)
 values ('<SEU_USER_ID>', 'Aluguel', 1500.00, 5, true);
+
+insert into public.expense_installment_plans (
+    user_id,
+    description,
+    amount,
+    due_day,
+    total_installments,
+    starts_in_current_month,
+    is_active,
+    base_month_id
+)
+values ('<SEU_USER_ID>', 'Televisão', 1200.00, 10, 3, false, true, '<SEU_MONTH_ID>');
 
 insert into public.cards (user_id, name, limit_amount)
 values ('<SEU_USER_ID>', 'Nubank', 3000.00);

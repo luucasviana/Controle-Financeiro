@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getDashboardShellData } from "@/app/dashboard/data"
 import { measureServerTiming } from "@/lib/server-timing"
 import type { MonthData } from "./months"
+import { buildInstallmentRowsToInsert, type InstallmentExpenseRow, type InstallmentPlanRow } from "./installment-scheduling"
 
 export async function getProjection() {
     return measureServerTiming("get-projection", async () => {
@@ -11,7 +12,7 @@ export async function getProjection() {
         const { defaultMonth, userId } = await getDashboardShellData()
         if (!defaultMonth) return []
 
-        const [{ data: incomes }, { data: templates }, { data: futureMonths }] = await Promise.all([
+        const [{ data: incomes }, { data: templates }, { data: futureMonths }, { data: installmentPlans }, { data: installmentRows }] = await Promise.all([
             supabase
                 .from("recurring_incomes")
                 .select("amount")
@@ -28,6 +29,18 @@ export async function getProjection() {
                 .eq("user_id", userId)
                 .gte("start_date", defaultMonth.start_date)
                 .order("start_date", { ascending: true }),
+            supabase
+                .from("expense_installment_plans")
+                .select("*")
+                .eq("user_id", userId)
+                .eq("is_active", true)
+                .eq("is_archived", false)
+                .order("created_at", { ascending: true }),
+            supabase
+                .from("month_expenses")
+                .select("month_id, installment_plan_id, installment_number")
+                .eq("user_id", userId)
+                .not("installment_plan_id", "is", null),
         ])
 
         const months = (futureMonths || []) as MonthData[]
@@ -35,6 +48,17 @@ export async function getProjection() {
 
         const totalIncome = (incomes || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0)
         const templateExpense = (templates || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0)
+        const pendingInstallmentRows = buildInstallmentRowsToInsert(
+            months,
+            (installmentPlans || []) as InstallmentPlanRow[],
+            (installmentRows || []) as InstallmentExpenseRow[]
+        )
+        const pendingInstallmentAmountByMonth = new Map<string, number>()
+
+        for (const row of pendingInstallmentRows) {
+            pendingInstallmentAmountByMonth.set(row.month_id, (pendingInstallmentAmountByMonth.get(row.month_id) || 0) + row.amount)
+        }
+
         const monthIds = months.map((month: { id: string }) => month.id)
         const { data: expenses } = await supabase
             .from("month_expenses")
@@ -67,7 +91,8 @@ export async function getProjection() {
         return months.map((month) => {
             const totals = expensesByMonth.get(month.id)
             const generatedTemplateExpense = totals?.hasGeneratedTemplate ? totals.templateExpenseAmount : templateExpense
-            const expense = (totals?.isolatedExpenseAmount || 0) + generatedTemplateExpense
+            const projectedInstallments = pendingInstallmentAmountByMonth.get(month.id) || 0
+            const expense = (totals?.isolatedExpenseAmount || 0) + generatedTemplateExpense + projectedInstallments
 
             return {
                 monthLabel: month.name,

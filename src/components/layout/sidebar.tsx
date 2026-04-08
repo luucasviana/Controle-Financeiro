@@ -7,6 +7,7 @@ import { useMonth } from "@/components/providers/month-provider"
 import { buildMonthScopedHref } from "@/lib/month-scoped-routes"
 import {
     BarChart3,
+    Archive,
     CreditCard,
     LayoutDashboard,
     LogOut,
@@ -27,6 +28,11 @@ const routes = [
         label: "Despesas",
         icon: Receipt,
         href: "/dashboard/expenses",
+    },
+    {
+        label: "Parcelamentos",
+        icon: Archive,
+        href: "/dashboard/parcelamentos",
     },
     {
         label: "Cartões",

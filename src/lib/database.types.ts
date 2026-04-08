@@ -96,6 +96,47 @@ export interface Database {
                     created_at?: string
                 }
             }
+            expense_installment_plans: {
+                Row: {
+                    id: string
+                    user_id: string
+                    description: string
+                    amount: number
+                    due_day: number
+                    total_installments: number
+                    starts_in_current_month: boolean
+                    is_active: boolean
+                    is_archived: boolean
+                    base_month_id: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    description: string
+                    amount: number
+                    due_day: number
+                    total_installments: number
+                    starts_in_current_month?: boolean
+                    is_active?: boolean
+                    is_archived?: boolean
+                    base_month_id?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    description?: string
+                    amount?: number
+                    due_day?: number
+                    total_installments?: number
+                    starts_in_current_month?: boolean
+                    is_active?: boolean
+                    is_archived?: boolean
+                    base_month_id?: string | null
+                    created_at?: string
+                }
+            }
             cards: {
                 Row: {
                     id: string
@@ -131,6 +172,9 @@ export interface Database {
                     payment_method: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
                     card_id: string | null
                     template_id: string | null
+                    installment_plan_id: string | null
+                    installment_number: number | null
+                    installment_total: number | null
                     paid_at: string | null
                     is_excluded: boolean
                     created_at: string
@@ -146,6 +190,9 @@ export interface Database {
                     payment_method?: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
                     card_id?: string | null
                     template_id?: string | null
+                    installment_plan_id?: string | null
+                    installment_number?: number | null
+                    installment_total?: number | null
                     paid_at?: string | null
                     is_excluded?: boolean
                     created_at?: string
@@ -161,6 +208,9 @@ export interface Database {
                     payment_method?: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
                     card_id?: string | null
                     template_id?: string | null
+                    installment_plan_id?: string | null
+                    installment_number?: number | null
+                    installment_total?: number | null
                     paid_at?: string | null
                     is_excluded?: boolean
                     created_at?: string
