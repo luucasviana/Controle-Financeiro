@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useMonth } from "@/components/providers/month-provider"
+import { buildMonthScopedHref } from "@/lib/month-scoped-routes"
 import {
     BarChart3,
     CreditCard,
@@ -55,6 +57,7 @@ const routes = [
 
 export function Sidebar() {
     const pathname = usePathname()
+    const { monthId } = useMonth()
 
     return (
         <div className="space-y-4 py-4 flex flex-col h-full bg-slate-900 text-white">
@@ -72,7 +75,7 @@ export function Sidebar() {
                         return (
                             <Link
                                 key={route.href}
-                                href={route.href}
+                                href={buildMonthScopedHref(route.href, monthId)}
                                 className={cn(
                                     "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition",
                                     isActive

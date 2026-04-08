@@ -1,5 +1,4 @@
-import { getDashboardData, getMetricsForMonths, getCardTotalsAllTime, getWaterfallData } from "@/app/actions/finance"
-import { getMonths, getOpenMonthOrLatest, getMonthById } from "@/app/actions/months"
+import { getDashboardData, getMetricsForMonths, getWaterfallData } from "@/app/actions/finance"
 import { formatCurrency } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, Wallet, Info } from "lucide-react"
@@ -12,14 +11,14 @@ import { VariacaoBadge } from "./variacao-badge"
 import { ExpenseDialog } from "./expenses/expense-dialog"
 import { UpdateBalanceDialog } from "./cards/update-balance-dialog"
 import { MonthlyWaterfallChart } from "@/components/charts/monthly-waterfall-chart"
-import { CardTotalsChart } from "@/components/charts/card-totals-chart"
+import { getDashboardContext } from "./data"
+import { measureServerTiming } from "@/lib/server-timing"
 
 export default async function DashboardPage(props: { searchParams: Promise<{ monthId?: string }> }) {
-    const searchParams = await props.searchParams
-    const monthId = searchParams.monthId
-
-    const months = await getMonths() // ordered by start_date desc
-    const activeMonth = monthId ? await getMonthById(monthId) : await getOpenMonthOrLatest()
+    const { activeMonth, months } = await measureServerTiming("dashboard-page", async () => {
+        const searchParams = await props.searchParams
+        return getDashboardContext(searchParams.monthId)
+    })
 
     if (!activeMonth) {
         return (
@@ -38,13 +37,11 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
         dashboardData,
         cards,
         balances,
-        cardTotals,
         waterfallData,
     ] = await Promise.all([
         getDashboardData(activeMonth),
         getCards(),
         getCardBalancesByMonth(activeMonth.id),
-        getCardTotalsAllTime(),
         getWaterfallData(activeMonth.id),
     ])
 

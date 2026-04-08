@@ -1,8 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
 import { Database } from "@/lib/database.types"
+import { revalidateDashboardShell } from "./revalidation"
 
 export type MonthData = Database['public']['Tables']['months']['Row']
 
@@ -52,7 +52,7 @@ export async function createMonth(formData: FormData) {
     })
 
     if (error) throw new Error(error.message)
-    revalidatePath('/', 'layout')
+    revalidateDashboardShell()
 }
 
 export async function updateMonth(id: string, formData: FormData) {
@@ -68,7 +68,7 @@ export async function updateMonth(id: string, formData: FormData) {
     }).eq("id", id)
 
     if (error) throw new Error(error.message)
-    revalidatePath('/', 'layout')
+    revalidateDashboardShell()
 }
 
 export async function setMonthStatus(id: string, status: 'OPEN' | 'CLOSED') {
@@ -84,12 +84,12 @@ export async function setMonthStatus(id: string, status: 'OPEN' | 'CLOSED') {
     const { error } = await supabase.from("months").update({ status }).eq("id", id)
     if (error) throw new Error(error.message)
 
-    revalidatePath('/', 'layout')
+    revalidateDashboardShell()
 }
 
 export async function deleteMonth(id: string) {
     const supabase = await createClient() as any
     const { error } = await supabase.from("months").delete().eq("id", id)
     if (error) throw new Error(error.message)
-    revalidatePath('/', 'layout')
+    revalidateDashboardShell()
 }

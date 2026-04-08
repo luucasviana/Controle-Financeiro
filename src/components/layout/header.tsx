@@ -9,15 +9,14 @@ import { Badge } from "@/components/ui/badge"
 import { MonthData } from "@/app/actions/months"
 import { EyeOff } from "lucide-react"
 import { HiddenModeShortcut } from "@/components/hidden-mode-shortcut"
-
-const ELIGIBLE_ROUTES = ["/dashboard", "/dashboard/expenses", "/dashboard/cards", "/dashboard/projection"]
+import { isMonthScopedPath } from "@/lib/month-scoped-routes"
 
 export function Header({ months }: { months: MonthData[] }) {
     const pathname = usePathname()
     const { monthId, setMonthId } = useMonth()
     const { hiddenModeEnabled } = useHiddenMode()
 
-    const isEligible = ELIGIBLE_ROUTES.includes(pathname)
+    const isEligible = isMonthScopedPath(pathname)
 
     return (
         <header className="sticky top-0 z-10 bg-white shadow-sm flex items-center justify-between p-4 min-h-[64px] border-b border-gray-100">

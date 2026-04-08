@@ -1,7 +1,8 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, startTransition, useContext, useEffect, useState } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { isMonthScopedPath } from "@/lib/month-scoped-routes"
 
 type MonthContextType = {
     monthId: string | null;
@@ -15,6 +16,7 @@ export function MonthProvider({ children, defaultMonthId }: { children: React.Re
     const searchParams = useSearchParams()
     const pathname = usePathname()
     const urlMonthId = searchParams.get("monthId")
+    const isEligiblePath = isMonthScopedPath(pathname)
 
     const [monthId, setMonthIdState] = useState<string | null>(urlMonthId || defaultMonthId)
 
@@ -23,28 +25,38 @@ export function MonthProvider({ children, defaultMonthId }: { children: React.Re
         if (urlMonthId) {
             localStorage.setItem("selectedMonthId", urlMonthId)
             setMonthIdState(urlMonthId)
-        } else if (stored && stored !== 'null') {
+        } else if (isEligiblePath && stored && stored !== 'null') {
             const params = new URLSearchParams(searchParams.toString())
             params.set("monthId", stored)
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            startTransition(() => {
+                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            })
             setMonthIdState(stored)
         } else if (defaultMonthId) {
             setMonthIdState(defaultMonthId)
         }
-    }, [urlMonthId, pathname, searchParams, router, defaultMonthId])
+    }, [defaultMonthId, isEligiblePath, pathname, router, searchParams, urlMonthId])
 
     const setMonthId = (id: string | null) => {
         setMonthIdState(id)
+        if (!isEligiblePath) {
+            return
+        }
+
         if (id) {
             localStorage.setItem("selectedMonthId", id)
             const params = new URLSearchParams(searchParams.toString())
             params.set("monthId", id)
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            startTransition(() => {
+                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            })
         } else {
             localStorage.removeItem("selectedMonthId")
             const params = new URLSearchParams(searchParams.toString())
             params.delete("monthId")
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            startTransition(() => {
+                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+            })
         }
     }
 

@@ -1,9 +1,10 @@
 import { getProjection } from "@/app/actions/projection"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
+import { measureServerTiming } from "@/lib/server-timing"
 
 export default async function ProjectionPage() {
-    const projection = await getProjection()
+    const projection = await measureServerTiming("projection-page", async () => getProjection())
 
     return (
         <div className="flex-1 space-y-6">

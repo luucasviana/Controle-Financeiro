@@ -1,8 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
 import { getOpenMonthOrLatest } from "./months"
+import { revalidateDashboardData } from "./revalidation"
 
 export async function createManualTransaction(formData: FormData) {
     const supabase = await createClient() as any
@@ -64,5 +64,5 @@ export async function createManualTransaction(formData: FormData) {
 
     if (txError) throw new Error(txError.message)
 
-    revalidatePath('/', 'layout')
+    revalidateDashboardData()
 }

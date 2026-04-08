@@ -1,5 +1,4 @@
-import { getCards } from "@/app/actions/cards"
-import { createClient } from "@/lib/supabase/server"
+import { getCardBalancesByMonth, getCards } from "@/app/actions/cards"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { CardDialog } from "./card-dialog"
@@ -7,35 +6,23 @@ import { UpdateBalanceDialog } from "./update-balance-dialog"
 import { Trash2 } from "lucide-react"
 import { deleteCard } from "@/app/actions/cards"
 import { format } from "date-fns"
-import { getMonths, getOpenMonthOrLatest, getMonthById } from "@/app/actions/months"
+import { getDashboardContext } from "../data"
+import { measureServerTiming } from "@/lib/server-timing"
 
 export default async function CardsPage(props: { searchParams: Promise<{ monthId?: string }> }) {
-    const searchParams = await props.searchParams
-    const monthId = searchParams.monthId
-
-    const months = await getMonths()
-    const activeMonth = monthId ? await getMonthById(monthId) : await getOpenMonthOrLatest()
+    const { activeMonth } = await measureServerTiming("cards-page", async () => {
+        const searchParams = await props.searchParams
+        return getDashboardContext(searchParams.monthId)
+    })
 
     const cards = await getCards()
 
     const consumptions: Record<string, { amount: number, updated_on: string | null }> = {}
 
-    let balances: any[] = []
-    if (activeMonth) {
-        const supabase = await createClient() as any
-
-        const { data: monthBalances } = await supabase
-            .from("card_month_balances")
-            .select("*")
-            .eq("month_id", activeMonth.id)
-
-        if (monthBalances) {
-            balances = monthBalances
-            monthBalances.forEach((balance: any) => {
-                consumptions[balance.card_id] = { amount: balance.amount_current, updated_on: balance.updated_on }
-            })
-        }
-    }
+    const balances = activeMonth ? await getCardBalancesByMonth(activeMonth.id) : []
+    balances.forEach((balance: any) => {
+        consumptions[balance.card_id] = { amount: balance.amount_current, updated_on: balance.updated_on }
+    })
 
     return (
         <div className="flex-1 space-y-6">

@@ -1,11 +1,26 @@
 "use server"
 
+import { cache } from "react"
 import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
+import { revalidateDashboardData } from "./revalidation"
+
+const getCurrentUserId = cache(async () => {
+    const supabase = await createClient() as any
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error("Unauthorized")
+    }
+
+    return user.id
+})
 
 export async function getCards() {
     const supabase = await createClient() as any
-    const { data } = await supabase.from("cards").select("*").order("name")
+    const userId = await getCurrentUserId()
+    const { data } = await supabase.from("cards").select("*").eq("user_id", userId).order("name")
     return data || []
 }
 
@@ -24,21 +39,23 @@ export async function createCard(formData: FormData) {
     })
 
     if (error) throw new Error(error.message)
-    revalidatePath('/dashboard/cards')
+    revalidateDashboardData()
 }
 
 export async function deleteCard(id: string) {
     const supabase = await createClient() as any
     const { error } = await supabase.from("cards").delete().eq("id", id)
     if (error) throw new Error(error.message)
-    revalidatePath('/dashboard/cards')
+    revalidateDashboardData()
 }
 
 export async function getCardBalancesByMonth(monthId: string) {
     const supabase = await createClient() as any
+    const userId = await getCurrentUserId()
     const { data } = await supabase
         .from("card_month_balances")
         .select("*")
+        .eq("user_id", userId)
         .eq("month_id", monthId)
     return data || []
 }
@@ -67,6 +84,5 @@ export async function upsertCardMonthBalance(formData: FormData) {
     )
 
     if (error) throw new Error(error.message)
-    revalidatePath('/dashboard/cards')
-    revalidatePath('/dashboard')
+    revalidateDashboardData()
 }

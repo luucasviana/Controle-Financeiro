@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { revalidateDashboardData } from "./revalidation"
 
 export async function getIncomes() {
     const supabase = await createClient() as any
@@ -36,24 +37,24 @@ export async function createIncome(formData: FormData, hiddenModeEnabled: boolea
     })
 
     if (error) throw new Error(error.message)
+    revalidateDashboardData()
     revalidatePath('/dashboard/incomes')
-    revalidatePath('/dashboard')
 }
 
 export async function deleteIncome(id: string) {
     const supabase = await createClient() as any
     const { error } = await supabase.from("recurring_incomes").delete().eq("id", id)
     if (error) throw new Error(error.message)
+    revalidateDashboardData()
     revalidatePath('/dashboard/incomes')
-    revalidatePath('/dashboard')
 }
 
 export async function toggleIncome(id: string, currentStatus: boolean) {
     const supabase = await createClient() as any
     const { error } = await supabase.from("recurring_incomes").update({ is_active: !currentStatus }).eq("id", id)
     if (error) throw new Error(error.message)
+    revalidateDashboardData()
     revalidatePath('/dashboard/incomes')
-    revalidatePath('/dashboard')
 }
 
 export async function updateIncome(id: string, formData: FormData, hiddenModeEnabled: boolean) {
@@ -75,7 +76,7 @@ export async function updateIncome(id: string, formData: FormData, hiddenModeEna
 
     const { error } = await supabase.from("recurring_incomes").update(payload).eq("id", id)
     if (error) throw new Error(error.message)
+    revalidateDashboardData()
     revalidatePath('/dashboard/incomes')
-    revalidatePath('/dashboard')
 }
 

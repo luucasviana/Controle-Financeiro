@@ -1,14 +1,14 @@
 import { getDashboardData } from "@/app/actions/finance"
-import { getMonths, getOpenMonthOrLatest, getMonthById } from "@/app/actions/months"
 import { getCards } from "@/app/actions/cards"
 import { ExpensesList } from "./expenses-list"
+import { getDashboardContext } from "../data"
+import { measureServerTiming } from "@/lib/server-timing"
 
 export default async function ExpensesPage(props: { searchParams: Promise<{ monthId?: string }> }) {
-    const searchParams = await props.searchParams
-    const monthId = searchParams.monthId
-
-    const months = await getMonths()
-    const activeMonth = monthId ? await getMonthById(monthId) : await getOpenMonthOrLatest()
+    const { activeMonth } = await measureServerTiming("expenses-page", async () => {
+        const searchParams = await props.searchParams
+        return getDashboardContext(searchParams.monthId)
+    })
 
     if (!activeMonth) {
         return <div className="p-8 text-center text-muted-foreground">Nenhum mês ativo. Vá para o Dashboard para criar um.</div>

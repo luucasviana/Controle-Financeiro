@@ -1,8 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { revalidateDashboardShell } from "./revalidation"
 
 export async function clearAllUserData() {
     const supabase = await createClient() as any
@@ -17,6 +17,6 @@ export async function clearAllUserData() {
         throw new Error(error.message)
     }
 
-    revalidatePath('/', 'layout')
+    revalidateDashboardShell()
     redirect('/dashboard/months')
 }
