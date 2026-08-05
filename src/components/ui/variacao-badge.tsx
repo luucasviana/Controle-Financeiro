@@ -10,8 +10,10 @@ export function VariacaoBadge({ valor, inverted }: { valor?: number | null, inve
     // Inverted means "positive is bad" (for expenses).
     const isGood = isZero ? true : inverted ? !isPositive : isPositive;
 
-    // Color logic — mono scheme: favorable is normal ink, unfavorable is accent.
-    const colorClass = isZero ? 'text-app-muted bg-app-hairline' : isGood ? 'text-app-muted bg-app-hairline' : 'text-app-accent bg-app-neg-bg';
+    // Color logic — mono scheme: favorable is normal ink, unfavorable is a lighter
+    // accent rung (app-warn, #d2cefd) for 4.5:1+ contrast on app-neg-bg — plain
+    // app-accent (#9184d9) only reached ~3.2:1 there.
+    const colorClass = isZero ? 'text-app-muted bg-app-hairline' : isGood ? 'text-app-muted bg-app-hairline' : 'text-app-warn bg-app-neg-bg';
     const Icon = isZero ? Minus : isPositive ? ArrowUpRight : ArrowDownRight;
 
     return (
