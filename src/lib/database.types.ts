@@ -93,6 +93,36 @@ export interface Database {
                 }
                 Relationships: []
             }
+            recurring_expense_templates: {
+                Row: {
+                    id: string
+                    user_id: string
+                    description: string
+                    amount: number
+                    day_of_month: number
+                    is_active: boolean
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    description: string
+                    amount: number
+                    day_of_month: number
+                    is_active?: boolean
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    description?: string
+                    amount?: number
+                    day_of_month?: number
+                    is_active?: boolean
+                    created_at?: string
+                }
+                Relationships: []
+            }
             recurring_expenses: {
                 Row: {
                     id: string

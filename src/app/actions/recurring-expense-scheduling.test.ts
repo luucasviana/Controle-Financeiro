@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
 import {
-    buildInstallmentRowsToInsert,
+    buildRecurringExpenseRowsToInsert,
     getMonthDueDate,
-    type InstallmentExpenseRow,
-    type InstallmentPlanRow,
+    type GeneratedOccurrenceRow,
+    type RecurringExpenseRow,
     type SchedulingMonth,
-} from "./installment-scheduling"
+} from "./recurring-expense-scheduling"
 
 const JAN: SchedulingMonth = { id: "m-jan", start_date: "2026-01-01" }
 const FEV: SchedulingMonth = { id: "m-fev", start_date: "2026-02-01" }
@@ -13,14 +13,14 @@ const MAR: SchedulingMonth = { id: "m-mar", start_date: "2026-03-01" }
 const ABR: SchedulingMonth = { id: "m-abr", start_date: "2026-04-01" }
 const TODOS_OS_MESES = [JAN, FEV, MAR, ABR]
 
-function plano(overrides: Partial<InstallmentPlanRow> = {}): InstallmentPlanRow {
+function plano(overrides: Partial<RecurringExpenseRow> = {}): RecurringExpenseRow {
     return {
         id: "p1",
         user_id: "u1",
         description: "Televisão",
         amount: 400,
         due_day: 10,
-        total_installments: 3,
+        total_occurrences: 3,
         starts_in_current_month: false,
         is_active: true,
         is_archived: false,
@@ -30,8 +30,8 @@ function plano(overrides: Partial<InstallmentPlanRow> = {}): InstallmentPlanRow 
     }
 }
 
-function gerada(monthId: string, numero: number): InstallmentExpenseRow {
-    return { month_id: monthId, installment_plan_id: "p1", installment_number: numero }
+function gerada(monthId: string, numero: number): GeneratedOccurrenceRow {
+    return { month_id: monthId, recurring_expense_id: "p1", occurrence_number: numero }
 }
 
 describe("getMonthDueDate", () => {
@@ -48,11 +48,11 @@ describe("getMonthDueDate", () => {
     })
 })
 
-describe("buildInstallmentRowsToInsert", () => {
+describe("buildRecurringExpenseRowsToInsert", () => {
     it("começa no mês seguinte ao mês base por padrão", () => {
-        const linhas = buildInstallmentRowsToInsert(TODOS_OS_MESES, [plano()], [])
+        const linhas = buildRecurringExpenseRowsToInsert(TODOS_OS_MESES, [plano()], [])
 
-        expect(linhas.map((l) => [l.month_id, l.installment_number])).toEqual([
+        expect(linhas.map((l) => [l.month_id, l.occurrence_number])).toEqual([
             [FEV.id, 1],
             [MAR.id, 2],
             [ABR.id, 3],
@@ -60,13 +60,13 @@ describe("buildInstallmentRowsToInsert", () => {
     })
 
     it("começa no próprio mês base quando starts_in_current_month é true", () => {
-        const linhas = buildInstallmentRowsToInsert(
+        const linhas = buildRecurringExpenseRowsToInsert(
             TODOS_OS_MESES,
             [plano({ starts_in_current_month: true })],
             []
         )
 
-        expect(linhas.map((l) => [l.month_id, l.installment_number])).toEqual([
+        expect(linhas.map((l) => [l.month_id, l.occurrence_number])).toEqual([
             [JAN.id, 1],
             [FEV.id, 2],
             [MAR.id, 3],
@@ -74,9 +74,9 @@ describe("buildInstallmentRowsToInsert", () => {
     })
 
     it("para ao atingir o total de parcelas", () => {
-        const linhas = buildInstallmentRowsToInsert(
+        const linhas = buildRecurringExpenseRowsToInsert(
             TODOS_OS_MESES,
-            [plano({ starts_in_current_month: true, total_installments: 2 })],
+            [plano({ starts_in_current_month: true, total_occurrences: 2 })],
             []
         )
 
@@ -84,17 +84,17 @@ describe("buildInstallmentRowsToInsert", () => {
     })
 
     it("continua a numeração de onde as parcelas já geradas pararam", () => {
-        const linhas = buildInstallmentRowsToInsert(
+        const linhas = buildRecurringExpenseRowsToInsert(
             TODOS_OS_MESES,
             [plano({ starts_in_current_month: true })],
             [gerada(JAN.id, 1), gerada(FEV.id, 2)]
         )
 
-        expect(linhas.map((l) => [l.month_id, l.installment_number])).toEqual([[MAR.id, 3]])
+        expect(linhas.map((l) => [l.month_id, l.occurrence_number])).toEqual([[MAR.id, 3]])
     })
 
     it("não gera nada quando todas as parcelas já existem", () => {
-        const linhas = buildInstallmentRowsToInsert(
+        const linhas = buildRecurringExpenseRowsToInsert(
             TODOS_OS_MESES,
             [plano({ starts_in_current_month: true })],
             [gerada(JAN.id, 1), gerada(FEV.id, 2), gerada(MAR.id, 3)]
@@ -104,7 +104,7 @@ describe("buildInstallmentRowsToInsert", () => {
     })
 
     it("ignora plano cujo mês base não está na lista de meses", () => {
-        const linhas = buildInstallmentRowsToInsert(
+        const linhas = buildRecurringExpenseRowsToInsert(
             [MAR, ABR],
             [plano({ starts_in_current_month: true })],
             []
@@ -114,7 +114,7 @@ describe("buildInstallmentRowsToInsert", () => {
     })
 
     it("ignora plano sem mês base", () => {
-        const linhas = buildInstallmentRowsToInsert(
+        const linhas = buildRecurringExpenseRowsToInsert(
             TODOS_OS_MESES,
             [plano({ base_month_id: null })],
             []
@@ -124,7 +124,7 @@ describe("buildInstallmentRowsToInsert", () => {
     })
 
     it("preenche descrição, valor e vencimento a partir do plano", () => {
-        const [linha] = buildInstallmentRowsToInsert(
+        const [linha] = buildRecurringExpenseRowsToInsert(
             TODOS_OS_MESES,
             [plano({ starts_in_current_month: true, due_day: 25 })],
             []
@@ -138,9 +138,59 @@ describe("buildInstallmentRowsToInsert", () => {
             amount: 400,
             status: "PLANNED",
             payment_method: "NONE",
-            installment_plan_id: "p1",
-            installment_number: 1,
-            installment_total: 3,
+            recurring_expense_id: "p1",
+            occurrence_number: 1,
+            occurrence_total: 3,
         })
+    })
+})
+
+describe("recorrência sem prazo (total_occurrences null)", () => {
+    it("gera em todos os meses elegíveis, sem limite", () => {
+        const linhas = buildRecurringExpenseRowsToInsert(
+            TODOS_OS_MESES,
+            [plano({ total_occurrences: null, starts_in_current_month: true })],
+            []
+        )
+
+        expect(linhas.map((l) => [l.month_id, l.occurrence_number])).toEqual([
+            [JAN.id, 1],
+            [FEV.id, 2],
+            [MAR.id, 3],
+            [ABR.id, 4],
+        ])
+    })
+
+    it("deixa occurrence_total nulo nas linhas geradas", () => {
+        const [linha] = buildRecurringExpenseRowsToInsert(
+            TODOS_OS_MESES,
+            [plano({ total_occurrences: null, starts_in_current_month: true })],
+            []
+        )
+
+        expect(linha.occurrence_total).toBeNull()
+    })
+
+    it("continua de onde parou, sem regerar meses já lançados", () => {
+        const linhas = buildRecurringExpenseRowsToInsert(
+            TODOS_OS_MESES,
+            [plano({ total_occurrences: null, starts_in_current_month: true })],
+            [gerada(JAN.id, 1), gerada(FEV.id, 2)]
+        )
+
+        expect(linhas.map((l) => [l.month_id, l.occurrence_number])).toEqual([
+            [MAR.id, 3],
+            [ABR.id, 4],
+        ])
+    })
+
+    it("não gera nada quando a recorrência sem prazo está sem mês base", () => {
+        const linhas = buildRecurringExpenseRowsToInsert(
+            TODOS_OS_MESES,
+            [plano({ total_occurrences: null, base_month_id: null })],
+            []
+        )
+
+        expect(linhas).toEqual([])
     })
 })

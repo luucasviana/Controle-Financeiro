@@ -3,13 +3,14 @@ export type SchedulingMonth = {
     start_date: string
 }
 
-export type InstallmentPlanRow = {
+export type RecurringExpenseRow = {
     id: string
     user_id: string
     description: string
     amount: number
     due_day: number
-    total_installments: number
+    /** null = recorrência sem prazo definido */
+    total_occurrences: number | null
     starts_in_current_month: boolean
     is_active: boolean
     is_archived: boolean
@@ -17,13 +18,13 @@ export type InstallmentPlanRow = {
     created_at: string
 }
 
-export type InstallmentExpenseRow = {
+export type GeneratedOccurrenceRow = {
     month_id: string
-    installment_plan_id: string | null
-    installment_number: number | null
+    recurring_expense_id: string | null
+    occurrence_number: number | null
 }
 
-export type InstallmentExpenseInsert = {
+export type RecurringExpenseInsert = {
     user_id: string
     month_id: string
     due_date: string
@@ -31,9 +32,9 @@ export type InstallmentExpenseInsert = {
     amount: number
     status: "PLANNED"
     payment_method: "NONE"
-    installment_plan_id: string
-    installment_number: number
-    installment_total: number
+    recurring_expense_id: string
+    occurrence_number: number
+    occurrence_total: number | null
 }
 
 export function getMonthDueDate(month: SchedulingMonth, dueDay: number) {
@@ -46,23 +47,23 @@ export function getMonthDueDate(month: SchedulingMonth, dueDay: number) {
     return `${year}-${String(monthIndex).padStart(2, "0")}-${String(adjustedDay).padStart(2, "0")}`
 }
 
-export function buildInstallmentRowsToInsert(
+export function buildRecurringExpenseRowsToInsert(
     months: SchedulingMonth[],
-    plans: InstallmentPlanRow[],
-    existingInstallments: InstallmentExpenseRow[]
+    plans: RecurringExpenseRow[],
+    existingOccurrences: GeneratedOccurrenceRow[]
 ) {
     const monthById = new Map(months.map((month) => [month.id, month]))
-    const existingByPlan = new Map<string, InstallmentExpenseRow[]>()
+    const existingByPlan = new Map<string, GeneratedOccurrenceRow[]>()
 
-    for (const expense of existingInstallments) {
-        if (!expense.installment_plan_id) continue
+    for (const expense of existingOccurrences) {
+        if (!expense.recurring_expense_id) continue
 
-        const current = existingByPlan.get(expense.installment_plan_id) || []
+        const current = existingByPlan.get(expense.recurring_expense_id) || []
         current.push(expense)
-        existingByPlan.set(expense.installment_plan_id, current)
+        existingByPlan.set(expense.recurring_expense_id, current)
     }
 
-    const insertRows: InstallmentExpenseInsert[] = []
+    const insertRows: RecurringExpenseInsert[] = []
 
     for (const plan of plans) {
         const baseMonth = plan.base_month_id ? monthById.get(plan.base_month_id) || null : null
@@ -81,11 +82,11 @@ export function buildInstallmentRowsToInsert(
         const planExpenses = existingByPlan.get(plan.id) || []
         const existingMonthIds = new Set(planExpenses.map((expense) => expense.month_id))
         const highestExistingNumber = planExpenses.reduce((max, expense) => {
-            const installmentNumber = expense.installment_number || 0
-            return installmentNumber > max ? installmentNumber : max
+            const occurrenceNumber = expense.occurrence_number || 0
+            return occurrenceNumber > max ? occurrenceNumber : max
         }, 0)
 
-        let nextInstallmentNumber = highestExistingNumber + 1
+        let nextOccurrenceNumber = highestExistingNumber + 1
         let lastGeneratedMonthStart: string | null = null
 
         for (const expense of planExpenses) {
@@ -104,7 +105,7 @@ export function buildInstallmentRowsToInsert(
                 continue
             }
 
-            if (nextInstallmentNumber > plan.total_installments) {
+            if (plan.total_occurrences !== null && nextOccurrenceNumber > plan.total_occurrences) {
                 break
             }
 
@@ -116,14 +117,14 @@ export function buildInstallmentRowsToInsert(
                 amount: plan.amount,
                 status: "PLANNED",
                 payment_method: "NONE",
-                installment_plan_id: plan.id,
-                installment_number: nextInstallmentNumber,
-                installment_total: plan.total_installments,
+                recurring_expense_id: plan.id,
+                occurrence_number: nextOccurrenceNumber,
+                occurrence_total: plan.total_occurrences,
             })
 
             existingMonthIds.add(month.id)
             lastGeneratedMonthStart = month.start_date
-            nextInstallmentNumber += 1
+            nextOccurrenceNumber += 1
         }
     }
 

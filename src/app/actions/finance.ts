@@ -10,10 +10,9 @@ import { revalidateDashboardData } from "./revalidation"
 import { Database } from "@/lib/database.types"
 import { measureServerTiming } from "@/lib/server-timing"
 import {
-    buildInstallmentRowsToInsert,
-    type InstallmentExpenseRow,
-    type InstallmentPlanRow,
-} from "./installment-scheduling"
+    buildRecurringExpenseRowsToInsert,
+    type RecurringExpenseRow,
+} from "./recurring-expense-scheduling"
 
 type ExpenseRow = Database["public"]["Tables"]["month_expenses"]["Row"]
 type CardBalanceRow = {
@@ -192,17 +191,17 @@ async function generateTemplatesForMonth(month: MonthData, userId: string) {
     return newExpenses.length
 }
 
-export async function syncInstallmentPlansForUser(userId: string) {
-    return measureServerTiming("sync-installment-plans", async () => {
-        const supabase = await createClient() as any
-        const [{ data: months }, { data: plans }, { data: installments }] = await Promise.all([
+export async function syncRecurringExpensesForUser(userId: string) {
+    return measureServerTiming("sync-recurring-expenses", async () => {
+        const supabase = await createClient()
+        const [{ data: months }, { data: plans }, { data: generated }] = await Promise.all([
             supabase
                 .from("months")
-                .select("*")
+                .select("id, start_date")
                 .eq("user_id", userId)
                 .order("start_date", { ascending: true }),
             supabase
-                .from("expense_installment_plans")
+                .from("recurring_expenses")
                 .select("*")
                 .eq("user_id", userId)
                 .eq("is_active", true)
@@ -210,22 +209,30 @@ export async function syncInstallmentPlansForUser(userId: string) {
                 .order("created_at", { ascending: true }),
             supabase
                 .from("month_expenses")
-                .select("month_id, installment_plan_id, installment_number")
+                .select("month_id, recurring_expense_id, occurrence_number")
                 .eq("user_id", userId)
-                .not("installment_plan_id", "is", null),
+                .not("recurring_expense_id", "is", null),
         ])
 
-        const insertRows = buildInstallmentRowsToInsert(
-            (months || []) as MonthData[],
-            (plans || []) as InstallmentPlanRow[],
-            (installments || []) as InstallmentExpenseRow[]
+        const insertRows = buildRecurringExpenseRowsToInsert(
+            months ?? [],
+            (plans ?? []) as RecurringExpenseRow[],
+            generated ?? []
         )
 
         if (insertRows.length === 0) {
             return 0
         }
 
-        const { error } = await supabase.from("month_expenses").insert(insertRows)
+        // ignoreDuplicates: duas abas podem sincronizar ao mesmo tempo. O índice
+        // único (user_id, month_id, recurring_expense_id) barra a duplicata; sem
+        // isso um único conflito derrubaria o lote inteiro.
+        const { error } = await supabase
+            .from("month_expenses")
+            .upsert(insertRows, {
+                onConflict: "user_id,month_id,recurring_expense_id",
+                ignoreDuplicates: true,
+            })
 
         if (error) {
             throw new Error(error.message)
@@ -236,37 +243,11 @@ export async function syncInstallmentPlansForUser(userId: string) {
     })
 }
 
-export async function syncRecurringExpensesForMonth(monthId: string) {
-    return measureServerTiming("sync-recurring-expenses", async () => {
-        const userId = await getCurrentUserId()
-        const supabase = await createClient() as any
-        const { data: month, error } = await supabase
-            .from("months")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("id", monthId)
-            .maybeSingle()
+export async function syncRecurringExpensesForMonth(_monthId: string) {
+    const userId = await getCurrentUserId()
+    const insertedCount = await syncRecurringExpensesForUser(userId)
 
-        if (error) {
-            throw new Error(error.message)
-        }
-
-        if (!month) {
-            return { insertedCount: 0 }
-        }
-
-        const [templateCount, installmentCount] = await Promise.all([
-            generateTemplatesForMonth(month as MonthData, userId),
-            syncInstallmentPlansForUser(userId),
-        ])
-        const insertedCount = templateCount + installmentCount
-
-        if (insertedCount > 0) {
-            revalidateDashboardData()
-        }
-
-        return { insertedCount }
-    })
+    return { insertedCount }
 }
 
 export async function getDashboardData(month: MonthData) {

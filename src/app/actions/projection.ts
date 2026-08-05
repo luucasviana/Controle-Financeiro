@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase/server"
 import { getDashboardShellData } from "@/app/dashboard/data"
 import { measureServerTiming } from "@/lib/server-timing"
 import type { MonthData } from "./months"
-import { buildInstallmentRowsToInsert, type InstallmentExpenseRow, type InstallmentPlanRow } from "./installment-scheduling"
+import {
+    buildRecurringExpenseRowsToInsert,
+    type RecurringExpenseRow,
+} from "./recurring-expense-scheduling"
 
 export async function getProjection() {
     return measureServerTiming("get-projection", async () => {
@@ -12,17 +15,7 @@ export async function getProjection() {
         const { defaultMonth, userId } = await getDashboardShellData()
         if (!defaultMonth) return []
 
-        const [
-            { data: templates },
-            { data: futureMonths },
-            { data: installmentPlans },
-            { data: installmentRows },
-        ] = await Promise.all([
-            supabase
-                .from("recurring_expense_templates")
-                .select("amount")
-                .eq("user_id", userId)
-                .eq("is_active", true),
+        const [{ data: futureMonths }, { data: plans }, { data: generated }] = await Promise.all([
             supabase
                 .from("months")
                 .select("*")
@@ -30,7 +23,7 @@ export async function getProjection() {
                 .gte("start_date", defaultMonth.start_date)
                 .order("start_date", { ascending: true }),
             supabase
-                .from("expense_installment_plans")
+                .from("recurring_expenses")
                 .select("*")
                 .eq("user_id", userId)
                 .eq("is_active", true)
@@ -38,75 +31,55 @@ export async function getProjection() {
                 .order("created_at", { ascending: true }),
             supabase
                 .from("month_expenses")
-                .select("month_id, installment_plan_id, installment_number")
+                .select("month_id, recurring_expense_id, occurrence_number")
                 .eq("user_id", userId)
-                .not("installment_plan_id", "is", null),
+                .not("recurring_expense_id", "is", null),
         ])
 
-        const months = (futureMonths || []) as MonthData[]
+        const months = (futureMonths ?? []) as MonthData[]
         if (months.length === 0) return []
 
-        const { data: incomeRows, error: incomeError } = await supabase
-            .from("month_incomes")
-            .select("month_id, amount")
-            .eq("user_id", userId)
-            .in("month_id", months.map((month) => month.id))
+        const monthIds = months.map((month) => month.id)
 
-        if (incomeError) throw new Error(incomeError.message)
+        const [{ data: incomeRows }, { data: expenses }] = await Promise.all([
+            supabase
+                .from("month_incomes")
+                .select("month_id, amount")
+                .eq("user_id", userId)
+                .in("month_id", monthIds),
+            supabase
+                .from("month_expenses")
+                .select("month_id, amount, is_excluded")
+                .eq("user_id", userId)
+                .in("month_id", monthIds),
+        ])
 
         const incomeByMonth = new Map<string, number>()
-
         for (const row of incomeRows ?? []) {
             incomeByMonth.set(row.month_id, (incomeByMonth.get(row.month_id) ?? 0) + row.amount)
         }
 
-        const templateExpense = (templates || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0)
-        const pendingInstallmentRows = buildInstallmentRowsToInsert(
+        // Despesas já lançadas. Respeita "fora do cálculo", igual ao dashboard.
+        const expenseByMonth = new Map<string, number>()
+        for (const row of expenses ?? []) {
+            if (row.is_excluded) continue
+            expenseByMonth.set(row.month_id, (expenseByMonth.get(row.month_id) ?? 0) + row.amount)
+        }
+
+        // Recorrências que ainda não viraram lançamento nesses meses.
+        const pendingByMonth = new Map<string, number>()
+        for (const row of buildRecurringExpenseRowsToInsert(
             months,
-            (installmentPlans || []) as InstallmentPlanRow[],
-            (installmentRows || []) as InstallmentExpenseRow[]
-        )
-        const pendingInstallmentAmountByMonth = new Map<string, number>()
-
-        for (const row of pendingInstallmentRows) {
-            pendingInstallmentAmountByMonth.set(row.month_id, (pendingInstallmentAmountByMonth.get(row.month_id) || 0) + row.amount)
-        }
-
-        const monthIds = months.map((month: { id: string }) => month.id)
-        const { data: expenses } = await supabase
-            .from("month_expenses")
-            .select("month_id, amount, template_id")
-            .eq("user_id", userId)
-            .in("month_id", monthIds)
-
-        const expensesByMonth = new Map<string, { isolatedExpenseAmount: number; templateExpenseAmount: number; hasGeneratedTemplate: boolean }>()
-
-        for (const month of months) {
-            expensesByMonth.set(month.id, {
-                isolatedExpenseAmount: 0,
-                templateExpenseAmount: 0,
-                hasGeneratedTemplate: false,
-            })
-        }
-
-        for (const expense of expenses || []) {
-            const current = expensesByMonth.get(expense.month_id)
-            if (!current) continue
-
-            if (expense.template_id) {
-                current.templateExpenseAmount += expense.amount
-                current.hasGeneratedTemplate = true
-            } else {
-                current.isolatedExpenseAmount += expense.amount
-            }
+            (plans ?? []) as RecurringExpenseRow[],
+            generated ?? []
+        )) {
+            pendingByMonth.set(row.month_id, (pendingByMonth.get(row.month_id) ?? 0) + row.amount)
         }
 
         return months.map((month) => {
-            const totals = expensesByMonth.get(month.id)
-            const generatedTemplateExpense = totals?.hasGeneratedTemplate ? totals.templateExpenseAmount : templateExpense
-            const projectedInstallments = pendingInstallmentAmountByMonth.get(month.id) || 0
-            const expense = (totals?.isolatedExpenseAmount || 0) + generatedTemplateExpense + projectedInstallments
             const income = incomeByMonth.get(month.id) ?? 0
+            const expense =
+                (expenseByMonth.get(month.id) ?? 0) + (pendingByMonth.get(month.id) ?? 0)
 
             return {
                 monthLabel: month.name,
