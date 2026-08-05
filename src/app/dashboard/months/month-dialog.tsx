@@ -23,13 +23,19 @@ import { Edit2, PlusCircle } from "lucide-react"
 
 interface MonthDialogProps {
     activeMonth?: MonthData
+    /**
+     * Período de origem ao duplicar. Quando presente e `activeMonth` está ausente,
+     * o diálogo é de criação (nome e datas vazios), mas as receitas iniciais vêm
+     * desse período.
+     */
+    duplicateFrom?: MonthData
     /** Elemento que abre o modal. Passe `null` para um modal totalmente controlado (sem trigger próprio). */
     trigger?: React.ReactNode | null
     open?: boolean
     onOpenChange?: (open: boolean) => void
 }
 
-export function MonthDialog({ activeMonth, trigger, open: externalOpen, onOpenChange: externalOnOpenChange }: MonthDialogProps) {
+export function MonthDialog({ activeMonth, duplicateFrom, trigger, open: externalOpen, onOpenChange: externalOnOpenChange }: MonthDialogProps) {
     const isControlled = externalOpen !== undefined
     const [internalOpen, setInternalOpen] = useState(false)
     const open = isControlled ? externalOpen! : internalOpen
@@ -47,7 +53,7 @@ export function MonthDialog({ activeMonth, trigger, open: externalOpen, onOpenCh
 
         let cancelled = false
 
-        getIncomeEditorRows(activeMonth?.id)
+        getIncomeEditorRows(activeMonth?.id ?? duplicateFrom?.id)
             .then((editorRows) => {
                 if (cancelled) return
                 setRows(editorRows)
@@ -63,7 +69,7 @@ export function MonthDialog({ activeMonth, trigger, open: externalOpen, onOpenCh
         return () => {
             cancelled = true
         }
-    }, [open, activeMonth?.id])
+    }, [open, activeMonth?.id, duplicateFrom?.id])
 
     function handleIncomeChange(sourceId: string, amount: number) {
         setValues((previous) => ({ ...previous, [sourceId]: amount }))
@@ -111,8 +117,18 @@ export function MonthDialog({ activeMonth, trigger, open: externalOpen, onOpenCh
             <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>
-                        {activeMonth ? "Editar Período" : "Criar Período Financeiro"}
+                        {activeMonth
+                            ? "Editar Período"
+                            : duplicateFrom
+                              ? "Duplicar Período"
+                              : "Criar Período Financeiro"}
                     </DialogTitle>
+                    {!activeMonth && duplicateFrom && (
+                        <p className="text-xs text-app-muted">
+                            Receitas copiadas de <strong>{duplicateFrom.name}</strong>. Defina um novo
+                            nome e novas datas.
+                        </p>
+                    )}
                 </DialogHeader>
                 <form action={onSubmit} className="space-y-4">
                     <div className="space-y-2">
@@ -150,7 +166,16 @@ export function MonthDialog({ activeMonth, trigger, open: externalOpen, onOpenCh
                         </div>
                     </div>
 
-                    <MonthIncomeFields rows={rows} values={values} onChange={handleIncomeChange} />
+                    <MonthIncomeFields
+                        rows={rows}
+                        values={values}
+                        onChange={handleIncomeChange}
+                        helperText={
+                            duplicateFrom && !activeMonth
+                                ? `Os valores vêm de "${duplicateFrom.name}". Ajuste o que mudou.`
+                                : undefined
+                        }
+                    />
 
                     {!activeMonth && (
                         <p className="text-xs text-app-muted">

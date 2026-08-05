@@ -4,7 +4,7 @@ import { useState } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { toast } from "sonner"
-import { CalendarDays, Edit, MoreHorizontal, PlayCircle, StopCircle, Trash2 } from "lucide-react"
+import { CalendarDays, Copy, Edit, MoreHorizontal, PlayCircle, StopCircle, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tag } from "@/components/ui/tag"
 import {
@@ -35,6 +35,7 @@ export function PeriodsPanel({
 }) {
     const { monthId, setMonthId } = useMonth()
     const [editingMonth, setEditingMonth] = useState<MonthData | null>(null)
+    const [duplicatingMonth, setDuplicatingMonth] = useState<MonthData | null>(null)
     const [busyId, setBusyId] = useState<string | null>(null)
 
     async function handleToggleStatus(month: MonthData) {
@@ -108,6 +109,10 @@ export function PeriodsPanel({
                                     <Edit className="h-4 w-4" />
                                     Editar
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setDuplicatingMonth(month)}>
+                                    <Copy className="h-4 w-4" />
+                                    Duplicar
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleToggleStatus(month)}>
                                     <StopCircle className="h-4 w-4" />
                                     {month.status === "OPEN" ? "Fechar" : "Reabrir"}
@@ -132,6 +137,17 @@ export function PeriodsPanel({
                     open
                     onOpenChange={(value) => {
                         if (!value) setEditingMonth(null)
+                    }}
+                />
+            )}
+
+            {duplicatingMonth && (
+                <MonthDialog
+                    duplicateFrom={duplicatingMonth}
+                    trigger={null}
+                    open
+                    onOpenChange={(value) => {
+                        if (!value) setDuplicatingMonth(null)
                     }}
                 />
             )}

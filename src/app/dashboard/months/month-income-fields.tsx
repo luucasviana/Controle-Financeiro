@@ -10,10 +10,12 @@ export function MonthIncomeFields({
     rows,
     values,
     onChange,
+    helperText = "Os valores vêm do período anterior. Ajuste o que mudou.",
 }: {
     rows: IncomeEditorRow[]
     values: Record<string, number>
     onChange: (sourceId: string, amount: number) => void
+    helperText?: string
 }) {
     const total = rows.reduce((acc, row) => acc + (values[row.source_id] ?? 0), 0)
 
@@ -34,9 +36,7 @@ export function MonthIncomeFields({
                 <Label className="text-sm font-medium text-app-ink">Receitas do período</Label>
             </div>
 
-            <p className="text-xs text-app-muted">
-                Os valores vêm do período anterior. Ajuste o que mudou.
-            </p>
+            <p className="text-xs text-app-muted">{helperText}</p>
 
             <div className="space-y-2">
                 {rows.map((row) => (
