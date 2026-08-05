@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/database.types"
+import type { PaymentSuggestion } from "@/app/actions/recurring-expenses"
 
 type ExpenseRow = Database["public"]["Tables"]["month_expenses"]["Row"]
 
@@ -37,4 +38,36 @@ export function getOccurrenceLabel(
  */
 export function isExpenseOverdue(expense: Pick<ExpenseRow, "status" | "due_date">, todayIso: string) {
     return expense.status === "PLANNED" && expense.due_date < todayIso
+}
+
+/**
+ * Rótulo do badge de sugestão de método da recorrência, mostrado ao lado do
+ * badge de ocorrência. Só faz sentido em despesas ainda previstas: uma
+ * despesa paga já exibe o método realmente usado, e repetir a sugestão da
+ * recorrência ali seria redundante (e potencialmente contraditório, já que o
+ * usuário pode ter pago de outro jeito).
+ *
+ * Quando o método é cartão de crédito, tenta anexar o nome do cartão via
+ * `cardsMap`; se o cartão sugerido não existir mais, cai para o rótulo
+ * genérico do método.
+ */
+export function getSuggestionBadgeLabel(
+    expense: Pick<ExpenseRow, "recurring_expense_id" | "status">,
+    paymentSuggestions: Record<string, PaymentSuggestion>,
+    cardsMap: Record<string, string>
+) {
+    if (!expense.recurring_expense_id) return null
+    if (expense.status !== "PLANNED") return null
+
+    const suggestion = paymentSuggestions[expense.recurring_expense_id]
+    if (!suggestion || suggestion.payment_method === "NONE") return null
+
+    const methodLabel = PAYMENT_METHOD_LABELS[suggestion.payment_method] || suggestion.payment_method
+    const cardName = suggestion.card_id ? cardsMap[suggestion.card_id] : null
+
+    if (suggestion.payment_method === "CREDIT_CARD" && cardName) {
+        return `${methodLabel} · ${cardName}`
+    }
+
+    return methodLabel
 }

@@ -10,7 +10,12 @@ import type { PaymentSuggestion } from "@/app/actions/recurring-expenses"
 import { cn, formatCurrency } from "@/lib/utils"
 import { ExpenseActions } from "./expense-actions"
 import { PayPopover } from "./pay-popover"
-import { PAYMENT_METHOD_LABELS, getOccurrenceLabel, isExpenseOverdue } from "./expense-meta"
+import {
+    PAYMENT_METHOD_LABELS,
+    getOccurrenceLabel,
+    getSuggestionBadgeLabel,
+    isExpenseOverdue,
+} from "./expense-meta"
 import type { Expense } from "./types"
 
 type CardOption = { id: string; name: string }
@@ -53,6 +58,7 @@ export function ExpenseItem({
     const dueLabel = format(parseISO(expense.due_date), "dd/MM")
     const formaLabel = buildFormaLabel(expense, cardsMap)
     const occurrenceLabel = getOccurrenceLabel(expense)
+    const suggestionLabel = getSuggestionBadgeLabel(expense, paymentSuggestions, cardsMap)
 
     // Abaixo de `sm` as colunas "Forma"/"Vence" (fixas em ~230px + gaps) estouram
     // a viewport de celular — o cabeçalho já se esconde nesse ponto
@@ -83,6 +89,15 @@ export function ExpenseItem({
                     {occurrenceLabel && (
                         <Tag tone="neutral" className="shrink-0">
                             {occurrenceLabel}
+                        </Tag>
+                    )}
+                    {suggestionLabel && (
+                        // Escondido abaixo de `sm`: nessa largura a linha já tem descrição +
+                        // badge de ocorrência disputando espaço, e a informação de forma de
+                        // pagamento não é essencial ali (a coluna "Forma" também some nesse
+                        // breakpoint, ver comentário acima).
+                        <Tag tone="neutral" className="hidden shrink-0 sm:inline-flex">
+                            {suggestionLabel}
                         </Tag>
                     )}
                     {excludedVisual && (

@@ -29,7 +29,12 @@ import { cn, formatCurrency } from "@/lib/utils"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import { ExpenseDialog } from "./expenses/expense-dialog"
 import { PayPopover } from "./expenses/pay-popover"
-import { PAYMENT_METHOD_LABELS, getOccurrenceLabel, isExpenseOverdue } from "./expenses/expense-meta"
+import {
+    PAYMENT_METHOD_LABELS,
+    getOccurrenceLabel,
+    getSuggestionBadgeLabel,
+    isExpenseOverdue,
+} from "./expenses/expense-meta"
 
 type ExpenseRow = Database["public"]["Tables"]["month_expenses"]["Row"]
 type CardRow = Database["public"]["Tables"]["cards"]["Row"]
@@ -138,6 +143,7 @@ function ExpenseRowItem({
     const meta = buildMeta(expense, cardsMap)
     const dueLabel = format(parseISO(expense.due_date), "dd/MM")
     const occurrenceLabel = getOccurrenceLabel(expense)
+    const suggestionLabel = getSuggestionBadgeLabel(expense, paymentSuggestions, cardsMap)
 
     return (
         <div
@@ -164,6 +170,14 @@ function ExpenseRowItem({
                     {occurrenceLabel && (
                         <Tag tone="neutral" className="shrink-0">
                             {occurrenceLabel}
+                        </Tag>
+                    )}
+                    {suggestionLabel && (
+                        // Escondido abaixo de `sm`, mesmo critério de expense-item.tsx: esta
+                        // linha não tem flex-wrap e já concorre com descrição + badge de
+                        // ocorrência + data + valor pelo espaço disponível.
+                        <Tag tone="neutral" className="hidden shrink-0 sm:inline-flex">
+                            {suggestionLabel}
                         </Tag>
                     )}
                     {excludedVisual && (
