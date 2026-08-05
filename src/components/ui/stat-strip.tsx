@@ -18,16 +18,16 @@ export function StatStrip({
     return (
         <div
             className={cn(
-                "grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-app-border bg-app-border sm:grid-cols-3",
+                "grid grid-cols-3 gap-4 border-t border-app-hairline pt-4",
                 className
             )}
         >
             {items.map((item) => (
-                <div key={item.label} className="bg-app-surface px-3 py-2.5">
-                    <div className="mb-1 text-[11px] text-app-muted">{item.label}</div>
+                <div key={item.label}>
+                    <div className="text-[11px] text-app-muted">{item.label}</div>
                     <div
                         className={cn(
-                            "text-[15px] font-semibold tabular-nums",
+                            "mt-0.5 text-[15px] font-medium tabular-nums",
                             TONES[item.tone ?? "neutral"]
                         )}
                     >

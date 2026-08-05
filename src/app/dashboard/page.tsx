@@ -1,15 +1,13 @@
 import { format } from "date-fns"
 import Link from "next/link"
-import { Info, PiggyBank, Receipt, Wallet } from "lucide-react"
+import { Info } from "lucide-react"
 
 import { getCardBalancesByMonth, getCards } from "@/app/actions/cards"
 import { getDashboardData, getMetricsForMonths, getWaterfallData } from "@/app/actions/finance"
 import { getIncomeSources } from "@/app/actions/income-sources"
 import { getIncomeEditorRows } from "@/app/actions/month-incomes"
 import { getProjection } from "@/app/actions/projection"
-import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
-import { KpiCard } from "@/components/ui/kpi-card"
 import { StatStrip } from "@/components/ui/stat-strip"
 import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
@@ -81,12 +79,6 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
         return ((curr - prev) / Math.abs(prev)) * 100
     }
 
-    const incVar = previousChartMetrics && currentChartMetrics
-        ? calcVar(currentChartMetrics.income_visible, previousChartMetrics.income_visible)
-        : undefined
-    const expVar = previousChartMetrics && currentChartMetrics
-        ? calcVar(currentChartMetrics.total_expenses, previousChartMetrics.total_expenses)
-        : undefined
     const balVar = previousChartMetrics && currentChartMetrics
         ? calcVar(currentChartMetrics.projected_balance, previousChartMetrics.projected_balance)
         : undefined
@@ -141,43 +133,13 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
 
     return (
         <div className="flex-1 space-y-6">
-            <PageHeader
-                title="Visão geral"
-                description={`${activeMonth.name} · ${activeMonth.status === "OPEN" ? "Em aberto" : "Encerrado"}`}
-            />
-
-            <div className="grid gap-4 md:grid-cols-3">
-                <KpiCard
-                    label="Receita do Período"
-                    value={formatCurrency(incomeVisible)}
-                    icon={Wallet}
-                    trend={incVar}
-                />
-                <KpiCard
-                    label={`Despesas de ${activeMonth.name}`}
-                    value={formatCurrency(totalExpense)}
-                    icon={Receipt}
-                    trend={expVar}
-                    trendInverted
-                    footnote="Previstas + pagas"
-                />
-                <KpiCard
-                    label="Saldo Projetado"
-                    value={formatCurrency(projectedBalance)}
-                    tone={isBalancePositive ? "positive" : "negative"}
-                    icon={PiggyBank}
-                    trend={balVar}
-                    hint="Pode incluir receitas de fontes ocultas"
-                />
-            </div>
-
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)_336px]">
                 {/* Coluna esquerda */}
                 <div className="flex flex-col gap-4">
-                    <Surface className="p-6">
+                    <Surface className="p-4">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-app-muted">
+                                <span className="text-[10px] uppercase tracking-wider text-app-accent">
                                     Sobra projetada do período
                                 </span>
                                 <span title="Pode incluir receitas de fontes ocultas" className="cursor-help">
@@ -192,7 +154,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                         <div
                             className={cn(
                                 "mt-2 text-4xl font-bold tabular-nums",
-                                isBalancePositive ? "text-app-ink" : "text-app-warn"
+                                isBalancePositive ? "text-app-ink" : "text-app-accent"
                             )}
                         >
                             {formatCurrency(projectedBalance)}
