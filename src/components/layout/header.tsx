@@ -1,62 +1,50 @@
 "use client"
 
-import { MobileSidebar } from "./mobile-sidebar"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useMonth } from "../providers/month-provider"
-import { useHiddenMode } from "../providers/hidden-mode-provider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { MonthData } from "@/app/actions/months"
-import { EyeOff } from "lucide-react"
+import { MobileSidebar } from "./mobile-sidebar"
+import { AppTabs } from "./app-tabs"
+import { PeriodSwitcher } from "./period-switcher"
+import { AccountMenu } from "./account-menu"
+import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import { HiddenModeShortcut } from "@/components/hidden-mode-shortcut"
+import { Tag } from "@/components/ui/tag"
 import { isMonthScopedPath } from "@/lib/month-scoped-routes"
+import type { MonthData } from "@/app/actions/months"
+import { EyeOff } from "lucide-react"
 
 export function Header({ months }: { months: MonthData[] }) {
     const pathname = usePathname()
-    const { monthId, setMonthId } = useMonth()
     const { hiddenModeEnabled } = useHiddenMode()
-
-    const isEligible = isMonthScopedPath(pathname)
+    const showPeriod = isMonthScopedPath(pathname)
 
     return (
-        <header className="sticky top-0 z-10 bg-white shadow-sm flex items-center justify-between p-4 min-h-[64px] border-b border-gray-100">
-            {/* Register global keyboard shortcut */}
-            <HiddenModeShortcut />
-
-            <div className="flex items-center gap-4">
-                <div className="md:hidden">
-                    <MobileSidebar />
-                </div>
-                <h1 className="text-xl font-bold md:hidden">Controle</h1>
+        <header className="sticky top-0 z-30 flex min-h-[54px] flex-wrap items-center gap-4 border-b border-app-border bg-app-surface px-4 md:px-5">
+            <div className="md:hidden">
+                <MobileSidebar />
             </div>
 
-            <div className="flex items-center gap-3 ml-auto">
+            <Link href="/dashboard" className="flex items-center gap-2">
+                <span className="h-5 w-5 rounded-md bg-app-ink" />
+                <span className="text-[15px] font-semibold tracking-tight">Controle</span>
+            </Link>
+
+            <div className="hidden md:block">
+                <AppTabs />
+            </div>
+
+            <div className="ml-auto flex items-center gap-2.5">
                 {hiddenModeEnabled && (
-                    <Badge variant="secondary" className="flex items-center gap-1 text-xs bg-slate-800 text-white hover:bg-slate-700">
+                    <Tag tone="neutral" className="gap-1 bg-app-ink text-white">
                         <EyeOff className="h-3 w-3" />
                         Modo oculto
-                    </Badge>
+                    </Tag>
                 )}
-
-                {isEligible && months && months.length > 0 && (
-                    <Select
-                        value={monthId || ""}
-                        onValueChange={(val) => setMonthId(val)}
-                    >
-                        <SelectTrigger className="w-[180px] md:w-[200px] bg-white text-black font-semibold shadow-xs border-gray-200">
-                            <SelectValue placeholder="Selecione o mês" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {months.map(m => (
-                                <SelectItem key={m.id} value={m.id} className="capitalize flex justify-between">
-                                    <span>{m.name}</span>
-                                    {m.status === 'OPEN' ? <Badge className="ml-2 bg-green-500 scale-75">Aberto</Badge> : <Badge variant="secondary" className="ml-2 scale-75">Fechado</Badge>}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
+                {showPeriod && <PeriodSwitcher months={months} />}
+                <AccountMenu />
             </div>
+
+            <HiddenModeShortcut />
         </header>
     )
 }

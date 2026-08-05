@@ -1,8 +1,9 @@
-import { Menu } from "lucide-react"
+"use client"
 
+import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
-import { Sidebar } from "./sidebar"
+import { AppTabs } from "./app-tabs"
 
 export function MobileSidebar() {
     return (
@@ -12,8 +13,8 @@ export function MobileSidebar() {
                     <Menu className="h-6 w-6" />
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className="p-0 bg-slate-900 h-full w-72">
-                <Sidebar />
+            <DrawerContent className="h-full w-72 bg-app-surface p-4">
+                <AppTabs orientation="vertical" />
             </DrawerContent>
         </Drawer>
     )

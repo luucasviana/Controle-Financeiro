@@ -1,16 +1,12 @@
-import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
+import { ClosedPeriodBanner } from "@/components/layout/closed-period-banner"
 import { MonthProvider } from "@/components/providers/month-provider"
 import { HiddenModeProvider } from "@/components/providers/hidden-mode-provider"
 import { getDashboardShellData } from "./data"
 import { measureServerTiming } from "@/lib/server-timing"
 import { RecurringSyncBridge } from "./recurring-sync-bridge"
 
-export default async function DashboardLayout({
-    children,
-}: {
-    children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { defaultMonth, months } = await measureServerTiming("dashboard-layout", async () =>
         getDashboardShellData()
     )
@@ -19,16 +15,10 @@ export default async function DashboardLayout({
         <HiddenModeProvider>
             <MonthProvider defaultMonthId={defaultMonth?.id || null}>
                 <RecurringSyncBridge />
-                <div className="h-full relative">
-                    <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-10 bg-gray-900">
-                        <Sidebar />
-                    </div>
-                    <main className="md:pl-72 flex flex-col h-full bg-slate-50 min-h-screen">
-                        <Header months={months} />
-                        <div className="p-4 md:p-8 flex-1">
-                            {children}
-                        </div>
-                    </main>
+                <div className="min-h-screen bg-app-bg text-[13px] text-app-ink tabular-nums">
+                    <Header months={months} />
+                    <ClosedPeriodBanner month={defaultMonth} />
+                    <main className="p-4 md:p-5">{children}</main>
                 </div>
             </MonthProvider>
         </HiddenModeProvider>
