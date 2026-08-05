@@ -35,6 +35,15 @@ alter index if exists public.idx_month_expenses_user_month_installment_unique
 alter index if exists public.idx_expense_installment_plans_user_active_archived
     rename to idx_recurring_expenses_user_active_archived;
 
+-- idx_month_expenses_user_month_recurring_unique é PARCIAL (where recurring_expense_id
+-- is not null), então o Postgres não aceita ele como árbitro de ON CONFLICT a menos que
+-- o WHERE seja repetido na cláusula — o supabase-js não tem como expressar isso. Sem um
+-- índice não-parcial, o upsert de syncRecurringExpensesForUser (finance.ts) falha com
+-- 42P10 assim que a primeira despesa recorrente for gerada. Nulos são distintos em
+-- índice único, então despesas avulsas (recurring_expense_id null) continuam livres.
+create unique index if not exists idx_month_expenses_user_month_recurring_arbiter
+    on public.month_expenses (user_id, month_id, recurring_expense_id);
+
 -- 3. Migra os templates (recorrência infinita) para dentro da tabela unificada.
 --    Reaproveita o id do template para que month_expenses.template_id continue
 --    apontando para o registro certo.

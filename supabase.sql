@@ -147,6 +147,14 @@ create index if not exists idx_month_expenses_user_month_recurring on public.mon
 create unique index if not exists idx_month_expenses_user_month_recurring_unique
     on public.month_expenses (user_id, month_id, recurring_expense_id)
     where recurring_expense_id is not null;
+-- Índice acima é PARCIAL (só cobre linhas com recurring_expense_id preenchido), então
+-- o Postgres não aceita ele como árbitro de ON CONFLICT a menos que o WHERE seja repetido
+-- na cláusula — algo que o supabase-js não tem como expressar. Este índice não-parcial
+-- serve de árbitro para o upsert de syncRecurringExpensesForUser (finance.ts). Nulos são
+-- distintos em índice único, então despesas avulsas (recurring_expense_id null) continuam
+-- livres para se repetir por (user_id, month_id).
+create unique index if not exists idx_month_expenses_user_month_recurring_arbiter
+    on public.month_expenses (user_id, month_id, recurring_expense_id);
 create index if not exists idx_month_expenses_user_month_excluded on public.month_expenses (user_id, month_id, is_excluded);
 create index if not exists idx_month_expenses_due_date on public.month_expenses (due_date);
 create index if not exists idx_card_month_balances_card_month on public.card_month_balances (card_id, month_id);
