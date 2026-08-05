@@ -9,7 +9,7 @@ import { buildMonthScopedHref } from "@/lib/month-scoped-routes"
 const TABS = [
     { label: "Visão geral", href: "/dashboard" },
     { label: "Movimentações", href: "/dashboard/expenses" },
-    { label: "Recorrentes", href: "/dashboard/parcelamentos" },
+    { label: "Recorrentes", href: "/dashboard/recorrentes" },
     { label: "Cartões", href: "/dashboard/cards" },
     { label: "Planejamento", href: "/dashboard/projection" },
 ]
