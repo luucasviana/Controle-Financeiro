@@ -29,9 +29,39 @@ export async function createCard(formData: FormData) {
     revalidateDashboardData()
 }
 
+export async function updateCard(id: string, formData: FormData) {
+    const supabase = await createClient()
+    const userId = await getCurrentUserId()
+
+    const name = String(formData.get("name") ?? "").trim()
+    if (!name) {
+        throw new Error("Informe o nome do cartão.")
+    }
+
+    const limitRaw = formData.get("limit_amount")
+    const limit_amount = parseFloat(String(limitRaw ?? ""))
+    if (!Number.isFinite(limit_amount) || limit_amount < 0) {
+        throw new Error("Informe um limite válido.")
+    }
+
+    const { error } = await supabase
+        .from("cards")
+        .update({ name, limit_amount })
+        .eq("user_id", userId)
+        .eq("id", id)
+
+    if (error) throw new Error(error.message)
+    revalidateDashboardData()
+}
+
 export async function deleteCard(id: string) {
-    const supabase = await createClient() as any
-    const { error } = await supabase.from("cards").delete().eq("id", id)
+    const supabase = await createClient()
+    const userId = await getCurrentUserId()
+    const { error } = await supabase
+        .from("cards")
+        .delete()
+        .eq("user_id", userId)
+        .eq("id", id)
     if (error) throw new Error(error.message)
     revalidateDashboardData()
 }

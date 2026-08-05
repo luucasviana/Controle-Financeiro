@@ -19,6 +19,7 @@ import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import type { Database } from "@/lib/database.types"
 import { formatCurrency } from "@/lib/utils"
+import { CardDialog } from "./card-dialog"
 import { UpdateBalanceDialog } from "./update-balance-dialog"
 
 type CardRow = Database["public"]["Tables"]["cards"]["Row"]
@@ -150,6 +151,7 @@ function CardTile({
     updatedOn: string | null
     expenses: ExpenseRow[]
 }) {
+    const [editOpen, setEditOpen] = useState(false)
     const [updateOpen, setUpdateOpen] = useState(false)
 
     const limit = card.limit_amount || 0
@@ -190,6 +192,10 @@ function CardTile({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                                <Pencil className="h-4 w-4" />
+                                Editar cartão
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setUpdateOpen(true)}>
                                 <CreditCard className="h-4 w-4" />
                                 Atualizar fatura
@@ -236,6 +242,8 @@ function CardTile({
                     )}
                 </div>
             </div>
+
+            <CardDialog card={card} open={editOpen} onOpenChange={setEditOpen} />
 
             <UpdateBalanceDialog
                 cards={cards}
