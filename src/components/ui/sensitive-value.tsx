@@ -3,35 +3,45 @@
 import { usePrivacy } from "@/components/providers/privacy-provider"
 import { cn } from "@/lib/utils"
 
+/** Quantidade fixa de pontos usados no lugar do valor oculto. */
+const HIDDEN_PLACEHOLDER = "●●●●"
+
 /**
- * Envolve um valor sensível (quanto o dono ganha ou quanto sobra) e aplica um
- * borrão quando o modo de privacidade está ativo. O raio do borrão é dado em
- * `em`, ou seja, proporcional ao tamanho da fonte de cada uso: sutil nos
- * textos pequenos (rótulos, listas) e forte no número grande de "Sobra
- * projetada", sem precisar de ajuste manual por lugar.
+ * Envolve um valor sensível (quanto o dono ganha ou quanto sobra) e, quando o
+ * modo de privacidade está ativo, troca o valor por uma sequência fixa de
+ * pontos — nunca renderiza o número em si.
  *
- * `filter: blur()` pinta além da caixa do próprio elemento borrado — o halo
- * vazaria para os vizinhos mesmo com raio pequeno. A primeira correção
- * recortava esse halo com `overflow-hidden` num wrapper externo, mas o
- * recorte corta o gradiente do blur no meio, trocando o desfoque suave por
- * um retângulo de bordas duras. Em vez de recortar, o `span` interno que
- * borra também recebe uma `mask-image` radial: opaca no centro, transparente
- * nas bordas. A borda da caixa cai exatamente na metade do raio da elipse
- * (`ellipse 100% 100% at center` faz o raio horizontal = largura e o raio
- * vertical = altura, então o contorno da caixa — a meia largura/altura —
- * corresponde sempre a 50% do raio, em qualquer proporção). Com a parada
- * opaca em 55%, o miolo da caixa (0%–50%) fica sempre 100% opaco — o valor
- * nunca fica legível, nem nas bordas — e só o halo que extrapola a caixa
- * (50%–100%) se dissolve gradualmente até sumir, sem linha de corte. Por
- * isso o wrapper externo não precisa mais de `overflow-hidden`: nada
- * transborda sem ser esmaecido primeiro. `-webkit-mask-image` replica o
- * mesmo gradiente para navegadores que só reconhecem a versão prefixada.
+ * As três tentativas anteriores usavam `filter: blur()`, que sempre esbarrou
+ * no mesmo problema: o desfoque pinta além da caixa do elemento, então algo
+ * precisa conter esse halo. Raio fixo vazou para os vizinhos; `overflow-hidden`
+ * conteve o halo mas recortou o gradiente no meio, virando um retângulo de
+ * bordas duras; trocar o recorte por `mask-image` não ajudou, porque
+ * `mask-clip` também vale `border-box` por padrão — a máscara recorta na
+ * borda da caixa do mesmo jeito, e a faixa de dissolução ficava fora da área
+ * pintada. Qualquer correção era um remendo em cima do anterior.
  *
- * O wrapper é `inline-flex` para se comportar como o conteúdo original —
- * não altera a altura da linha nem o alinhamento nas grades e linhas que o
- * usam. `select-none` no interno evita que o texto borrado seja selecionado
- * e copiado. Nenhum dos dois altera as dimensões do elemento, então o
- * layout não pula ao alternar.
+ * Pontos resolvem tudo isso de uma vez, porque não pintam nada fora da caixa:
+ * não há halo, não há recorte, não há máscara, não há diferença entre
+ * navegadores. A quantidade de pontos é sempre a mesma (4), independente do
+ * valor — de propósito: o blur preservava a largura do texto original, então
+ * um valor na casa dos milhares ficava visivelmente mais comprido que um na
+ * casa das centenas, vazando a ordem de grandeza mesmo com os dígitos
+ * escondidos. Um pequeno salto de largura ao alternar oculto/visível é
+ * esperado e aceitável — não é compensado com largura fixa, que só trocaria
+ * esse problema por outro pior nos valores longos.
+ *
+ * Também é mais seguro que o desfoque: com `blur()` o número continuava no
+ * DOM, então dava pra selecionar e copiar o texto borrado mesmo sem
+ * conseguir lê-lo. Aqui, quando oculto, o valor real simplesmente não é
+ * renderizado — não existe para ser selecionado, copiado ou lido por um
+ * leitor de tela. Os pontos recebem `aria-label` avisando que o valor está
+ * oculto, então o leitor de tela anuncia isso em vez do conteúdo (que nem
+ * está presente).
+ *
+ * O wrapper continua `inline-flex` para não alterar a altura da linha nem o
+ * alinhamento nas grades e linhas onde é usado, e `tabular-nums` estabiliza
+ * a largura junto dos números vizinhos. `select-none` impede a seleção dos
+ * próprios pontos.
  */
 export function SensitiveValue({
     children,
@@ -42,17 +52,23 @@ export function SensitiveValue({
 }) {
     const { valuesHidden } = usePrivacy()
 
-    return (
-        <span className={cn("inline-flex", className)} aria-hidden={valuesHidden}>
+    if (valuesHidden) {
+        return (
             <span
                 className={cn(
-                    "inline-block transition-[filter] duration-150",
-                    valuesHidden &&
-                        "blur-[0.35em] select-none [mask-image:radial-gradient(ellipse_100%_100%_at_center,black_55%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_100%_100%_at_center,black_55%,transparent_100%)]"
+                    "inline-flex select-none tabular-nums text-app-faint transition-opacity duration-150",
+                    className
                 )}
+                aria-label="Valor oculto"
             >
-                {children}
+                {HIDDEN_PLACEHOLDER}
             </span>
+        )
+    }
+
+    return (
+        <span className={cn("inline-flex transition-opacity duration-150", className)}>
+            {children}
         </span>
     )
 }
