@@ -7,10 +7,10 @@ import {
     type SchedulingMonth,
 } from "./recurring-expense-scheduling"
 
-const JAN: SchedulingMonth = { id: "m-jan", start_date: "2026-01-01" }
-const FEV: SchedulingMonth = { id: "m-fev", start_date: "2026-02-01" }
-const MAR: SchedulingMonth = { id: "m-mar", start_date: "2026-03-01" }
-const ABR: SchedulingMonth = { id: "m-abr", start_date: "2026-04-01" }
+const JAN: SchedulingMonth = { id: "m-jan", start_date: "2026-01-01", end_date: "2026-01-31" }
+const FEV: SchedulingMonth = { id: "m-fev", start_date: "2026-02-01", end_date: "2026-02-28" }
+const MAR: SchedulingMonth = { id: "m-mar", start_date: "2026-03-01", end_date: "2026-03-31" }
+const ABR: SchedulingMonth = { id: "m-abr", start_date: "2026-04-01", end_date: "2026-04-30" }
 const TODOS_OS_MESES = [JAN, FEV, MAR, ABR]
 
 function plano(overrides: Partial<RecurringExpenseRow> = {}): RecurringExpenseRow {
@@ -47,6 +47,46 @@ describe("getMonthDueDate", () => {
 
     it("nunca devolve dia menor que 1", () => {
         expect(getMonthDueDate(JAN, 0)).toBe("2026-01-01")
+    })
+
+    describe("período não alinhado ao calendário (ex.: 10 a 09 do mês seguinte)", () => {
+        const PERIODO_AGO_SET: SchedulingMonth = {
+            id: "m-periodo",
+            start_date: "2026-08-10",
+            end_date: "2026-09-09",
+        }
+
+        it("dia que só existe no mês seguinte ao início rola para lá, sem cair antes do período (bug original)", () => {
+            expect(getMonthDueDate(PERIODO_AGO_SET, 9)).toBe("2026-09-09")
+        })
+
+        it("dia que cabe dentro do mês de início não regride: continua no mês de início", () => {
+            expect(getMonthDueDate(PERIODO_AGO_SET, 15)).toBe("2026-08-15")
+        })
+
+        it("dia igual ao início do período é o limite inferior exato", () => {
+            expect(getMonthDueDate(PERIODO_AGO_SET, 10)).toBe("2026-08-10")
+        })
+
+        it("período de calendário (mês cheio) continua funcionando como antes", () => {
+            const periodoCalendario: SchedulingMonth = {
+                id: "m-fev-calendario",
+                start_date: "2026-02-01",
+                end_date: "2026-02-28",
+            }
+
+            expect(getMonthDueDate(periodoCalendario, 15)).toBe("2026-02-15")
+        })
+
+        it("dia 31 num período que atravessa fevereiro é recortado para o último dia válido, sem sair do período", () => {
+            const periodoAtravessaFevereiro: SchedulingMonth = {
+                id: "m-fev-marco",
+                start_date: "2026-02-05",
+                end_date: "2026-03-04",
+            }
+
+            expect(getMonthDueDate(periodoAtravessaFevereiro, 31)).toBe("2026-02-28")
+        })
     })
 })
 

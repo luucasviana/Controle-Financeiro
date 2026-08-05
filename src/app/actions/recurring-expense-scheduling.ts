@@ -1,6 +1,7 @@
 export type SchedulingMonth = {
     id: string
     start_date: string
+    end_date: string
 }
 
 export type RecurringExpenseRow = {
@@ -44,14 +45,47 @@ export type RecurringExpenseInsert = {
     occurrence_total: number | null
 }
 
+/**
+ * Períodos deste app não são meses de calendário: começam e terminam no dia
+ * que o usuário escolher (ex.: 10/09 a 09/10). O vencimento de uma recorrência
+ * precisa cair dentro de [start_date, end_date], então não basta usar o mês em
+ * que o período começa — o dia de vencimento pode só existir no mês seguinte.
+ *
+ * Regra: tenta o dia pedido dentro do mês de start_date (encolhendo para o
+ * último dia daquele mês, se preciso). Se a data resultante cair dentro do
+ * período, é essa. Senão, repete a tentativa no mês seguinte. Se nem assim
+ * couber (período mais curto que um mês, por exemplo), devolve start_date —
+ * melhor o começo do período do que uma data fora dele.
+ *
+ * Comparação de datas é lexicográfica sobre strings "yyyy-MM-dd" (equivalente
+ * à cronológica, sem risco de fuso horário). Date só é usado para descobrir
+ * quantos dias tem cada mês.
+ */
 export function getMonthDueDate(month: SchedulingMonth, dueDay: number) {
+    const clampedDueDay = Math.max(dueDay, 1)
+
+    const buildCandidate = (year: number, monthIndex: number) => {
+        const daysInMonth = new Date(year, monthIndex, 0).getDate()
+        const adjustedDay = Math.min(clampedDueDay, daysInMonth)
+        return `${year}-${String(monthIndex).padStart(2, "0")}-${String(adjustedDay).padStart(2, "0")}`
+    }
+
+    const isWithinPeriod = (date: string) => date >= month.start_date && date <= month.end_date
+
     const start = new Date(`${month.start_date}T00:00:00`)
     const year = start.getFullYear()
     const monthIndex = start.getMonth() + 1
-    const daysInMonth = new Date(year, monthIndex, 0).getDate()
-    const adjustedDay = Math.min(Math.max(dueDay, 1), daysInMonth)
 
-    return `${year}-${String(monthIndex).padStart(2, "0")}-${String(adjustedDay).padStart(2, "0")}`
+    const candidateInStartMonth = buildCandidate(year, monthIndex)
+    if (isWithinPeriod(candidateInStartMonth)) return candidateInStartMonth
+
+    // Mês seguinte: monthIndex já é 1-based, então usá-lo como argumento "mês"
+    // do Date (que é 0-based) avança exatamente um mês, inclusive virando o ano.
+    const nextMonth = new Date(year, monthIndex, 1)
+    const candidateInNextMonth = buildCandidate(nextMonth.getFullYear(), nextMonth.getMonth() + 1)
+    if (isWithinPeriod(candidateInNextMonth)) return candidateInNextMonth
+
+    return month.start_date
 }
 
 export function buildRecurringExpenseRowsToInsert(

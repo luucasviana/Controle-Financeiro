@@ -136,7 +136,7 @@ export async function syncRecurringExpensesForUser(userId: string) {
         const [{ data: months }, { data: plans }, { data: generated }] = await Promise.all([
             supabase
                 .from("months")
-                .select("id, start_date")
+                .select("id, start_date, end_date")
                 .eq("user_id", userId)
                 .order("start_date", { ascending: true }),
             supabase
