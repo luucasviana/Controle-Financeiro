@@ -11,6 +11,16 @@
 -- não aparecem aqui. Este arquivo serve como referência para
 -- instalações novas (fresh install) e como destino final da migração,
 -- não como retrato fiel do banco de produção atual.
+--
+-- ⚠️ NÃO rode este arquivo inteiro contra um banco já migrado enquanto
+-- os comandos destrutivos pendentes (bloco "PENDENTE DE AVAL" no fim
+-- de `migration_unify_recurring_expenses.sql`) não forem aprovados e
+-- executados. O `create or replace function public.clean_user_data()`
+-- daqui embaixo substituiria silenciosamente a versão criada pela
+-- migração — que ainda limpa `recurring_expense_templates` — por esta
+-- versão-alvo, que não a limpa. Enquanto a tabela ainda existir de
+-- fato em produção, isso faria o reset de dados deixar linhas órfãs
+-- nela.
 -- ============================================================
 
 create extension if not exists "uuid-ossp";
