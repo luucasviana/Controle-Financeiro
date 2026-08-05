@@ -41,7 +41,7 @@ export async function getProjection(monthId?: string) {
 
         const monthIds = months.map((month) => month.id)
 
-        const [{ data: incomeRows }, { data: expenses }] = await Promise.all([
+        const [{ data: incomeRows }, { data: expenses }, { data: cardBalances }] = await Promise.all([
             supabase
                 .from("month_incomes")
                 .select("month_id, amount")
@@ -49,7 +49,12 @@ export async function getProjection(monthId?: string) {
                 .in("month_id", monthIds),
             supabase
                 .from("month_expenses")
-                .select("month_id, amount, is_excluded")
+                .select("month_id, amount, is_excluded, status, payment_method")
+                .eq("user_id", userId)
+                .in("month_id", monthIds),
+            supabase
+                .from("card_month_balances")
+                .select("month_id, amount_current")
                 .eq("user_id", userId)
                 .in("month_id", monthIds),
         ])
@@ -59,11 +64,25 @@ export async function getProjection(monthId?: string) {
             incomeByMonth.set(row.month_id, (incomeByMonth.get(row.month_id) ?? 0) + row.amount)
         }
 
-        // Despesas já lançadas. Respeita "fora do cálculo", igual ao dashboard.
+        // Despesas já lançadas. Respeita "fora do cálculo", igual ao dashboard, e
+        // exclui as pagas no cartão de crédito: essas já estão embutidas no valor
+        // da fatura somado logo abaixo, então somar as duas contaria o mesmo
+        // gasto duas vezes (mesma regra de getMonthFinanceSnapshot em finance.ts).
         const expenseByMonth = new Map<string, number>()
         for (const row of expenses ?? []) {
             if (row.is_excluded) continue
+            if (row.status === "PAID" && row.payment_method === "CREDIT_CARD") continue
             expenseByMonth.set(row.month_id, (expenseByMonth.get(row.month_id) ?? 0) + row.amount)
+        }
+
+        // Faturas informadas por período. Períodos futuros sem fatura lançada
+        // contribuem zero — não há estimativa nem projeção de fatura aqui.
+        const cardExpenseByMonth = new Map<string, number>()
+        for (const row of cardBalances ?? []) {
+            cardExpenseByMonth.set(
+                row.month_id,
+                (cardExpenseByMonth.get(row.month_id) ?? 0) + row.amount_current
+            )
         }
 
         // Recorrências que ainda não viraram lançamento nesses meses.
@@ -79,7 +98,9 @@ export async function getProjection(monthId?: string) {
         return months.map((month) => {
             const income = incomeByMonth.get(month.id) ?? 0
             const expense =
-                (expenseByMonth.get(month.id) ?? 0) + (pendingByMonth.get(month.id) ?? 0)
+                (expenseByMonth.get(month.id) ?? 0) +
+                (cardExpenseByMonth.get(month.id) ?? 0) +
+                (pendingByMonth.get(month.id) ?? 0)
 
             return {
                 monthLabel: month.name,

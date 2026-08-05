@@ -24,7 +24,7 @@ export default async function ProjectionPage(props: { searchParams: Promise<{ mo
         <div className="flex-1 space-y-6">
             <PageHeader
                 title="Planejamento"
-                description="Projeção de receita, despesa e sobra dos próximos períodos, com base nos lançamentos e nas recorrências ativas. Não inclui as faturas de cartão informadas, então pode diferir do resumo do período."
+                description="Projeção de receita, despesa e sobra dos próximos períodos, com base nos lançamentos, nas faturas de cartão informadas e nas recorrências ativas. Coerente com o resumo do período."
             />
 
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -47,7 +47,7 @@ export default async function ProjectionPage(props: { searchParams: Promise<{ mo
                                     <tr className="border-b border-app-hairline text-[11px] font-semibold uppercase tracking-wider text-app-muted">
                                         <th className="py-2 pr-3 font-semibold">Período</th>
                                         <th className="px-3 py-2 text-right font-semibold">Receita</th>
-                                        <th className="px-3 py-2 text-right font-semibold">Despesas lançadas</th>
+                                        <th className="px-3 py-2 text-right font-semibold">Despesa</th>
                                         <th className="px-3 py-2 text-right font-semibold">Sobra</th>
                                         <th className="py-2 pl-3 text-right font-semibold">Acumulado</th>
                                     </tr>

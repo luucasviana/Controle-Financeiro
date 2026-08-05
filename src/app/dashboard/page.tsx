@@ -343,11 +343,12 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                         <p className="font-medium text-app-ink">Próximos períodos</p>
                                         <p>
                                             A sobra projetada de cada período daqui em diante: receita menos as
-                                            despesas já lançadas e as recorrências que ainda serão lançadas.
+                                            despesas já lançadas, as faturas de cartão informadas e as recorrências
+                                            que ainda serão lançadas.
                                         </p>
                                         <p>
-                                            Não inclui faturas de cartão, porque períodos futuros ainda não têm
-                                            fatura informada.
+                                            Períodos futuros que ainda não têm fatura informada entram sem essa
+                                            parcela — nenhum valor de cartão é estimado.
                                         </p>
                                     </div>
                                 </InfoPopover>
@@ -356,7 +357,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                 Planejar
                             </Link>
                         </div>
-                        <p className="mb-4 text-app-muted">Lançamentos e recorrências, sem faturas de cartão</p>
+                        <p className="mb-4 text-app-muted">Lançamentos, faturas de cartão e recorrências</p>
 
                         <div className="flex flex-col gap-3">
                             {projectionPreview.map((item, index) => {
