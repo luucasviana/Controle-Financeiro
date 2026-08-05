@@ -1,7 +1,7 @@
-import { getIncomes } from "@/app/actions/incomes"
-import { IncomesClient } from "./incomes-client"
+import { getIncomeSources } from "@/app/actions/income-sources"
+import { IncomeSourcesClient } from "./incomes-client"
 
-export default async function IncomesPage() {
-    const incomes = await getIncomes()
-    return <IncomesClient incomes={incomes} />
+export default async function IncomeSourcesPage() {
+    const sources = await getIncomeSources()
+    return <IncomeSourcesClient sources={sources} />
 }

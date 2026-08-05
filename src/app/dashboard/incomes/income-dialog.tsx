@@ -10,36 +10,39 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CurrencyInput } from "@/components/ui/currency-input"
 import { Label } from "@/components/ui/label"
-import { createIncome, updateIncome } from "@/app/actions/incomes"
+import { Tag } from "@/components/ui/tag"
+import {
+    createIncomeSource,
+    updateIncomeSource,
+    type IncomeSource,
+} from "@/app/actions/income-sources"
 import { toast } from "sonner"
 import { PlusCircle, EyeOff } from "lucide-react"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 
-type Income = {
-    id: string
-    description: string
-    amount: number
-    is_active: boolean
-    is_hidden: boolean
-}
-
 interface IncomeDialogProps {
     mode?: "create" | "edit"
-    income?: Income
+    source?: IncomeSource
     onSuccess?: () => void
     trigger?: React.ReactNode
     open?: boolean
     onOpenChange?: (val: boolean) => void
 }
 
-export function IncomeDialog({ mode = "create", income, onSuccess, trigger, open: externalOpen, onOpenChange: externalOnOpenChange }: IncomeDialogProps) {
+export function IncomeDialog({
+    mode = "create",
+    source,
+    onSuccess,
+    trigger,
+    open: externalOpen,
+    onOpenChange: externalOnOpenChange,
+}: IncomeDialogProps) {
     const isControlled = externalOpen !== undefined
     const [internalOpen, setInternalOpen] = useState(false)
     const open = isControlled ? externalOpen! : internalOpen
     const [loading, setLoading] = useState(false)
-    const [isHidden, setIsHidden] = useState(income?.is_hidden ?? false)
+    const [isHidden, setIsHidden] = useState(source?.is_hidden ?? false)
     const { hiddenModeEnabled } = useHiddenMode()
 
     const isEdit = mode === "edit"
@@ -47,8 +50,8 @@ export function IncomeDialog({ mode = "create", income, onSuccess, trigger, open
     function handleOpenChange(val: boolean) {
         if (!isControlled) setInternalOpen(val)
         externalOnOpenChange?.(val)
-        if (val && income) setIsHidden(income.is_hidden ?? false)
-        if (!val) setIsHidden(income?.is_hidden ?? false)
+        if (val && source) setIsHidden(source.is_hidden ?? false)
+        if (!val) setIsHidden(source?.is_hidden ?? false)
     }
 
     async function onSubmit(formData: FormData) {
@@ -58,25 +61,25 @@ export function IncomeDialog({ mode = "create", income, onSuccess, trigger, open
             formData.append("is_hidden", "true")
         }
         try {
-            if (isEdit && income) {
-                await updateIncome(income.id, formData, hiddenModeEnabled)
-                toast.success("Receita atualizada com sucesso!")
+            if (isEdit && source) {
+                await updateIncomeSource(source.id, formData, hiddenModeEnabled)
+                toast.success("Fonte de receita atualizada!")
             } else {
-                await createIncome(formData, hiddenModeEnabled)
-                toast.success("Receita adicionada com sucesso!")
+                await createIncomeSource(formData, hiddenModeEnabled)
+                toast.success("Fonte de receita criada!")
             }
             handleOpenChange(false)
             onSuccess?.()
-        } catch (e: any) {
-            toast.error(e.message)
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "Não foi possível salvar.")
         } finally {
             setLoading(false)
         }
     }
 
     const defaultTrigger = isEdit ? null : (
-        <Button className="bg-green-600 hover:bg-green-700">
-            <PlusCircle className="mr-2 h-4 w-4" /> Nova Receita
+        <Button>
+            <PlusCircle className="mr-2 h-4 w-4" /> Nova Fonte de Receita
         </Button>
     )
 
@@ -89,53 +92,50 @@ export function IncomeDialog({ mode = "create", income, onSuccess, trigger, open
             )}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Editar Receita" : "Registrar Receita"}</DialogTitle>
+                    <DialogTitle>
+                        {isEdit ? "Editar Fonte de Receita" : "Nova Fonte de Receita"}
+                    </DialogTitle>
                 </DialogHeader>
                 <form action={onSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="description">Descrição</Label>
+                        <Label htmlFor="description">Nome da fonte</Label>
                         <Input
                             id="description"
                             name="description"
                             required
-                            placeholder="Ex: Salário, Aluguel..."
-                            defaultValue={income?.description}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="amount">Valor Mensal</Label>
-                        <CurrencyInput
-                            id="amount"
-                            name="amount"
-                            required
-                            placeholder="R$ 0,00"
-                            key={`amt-${income?.amount}`}
-                            defaultValue={income?.amount}
+                            placeholder="Ex: Salário Lucas, Salário Camile, Renda extra"
+                            defaultValue={source?.description}
                         />
                     </div>
 
                     {hiddenModeEnabled && (
-                        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
+                        <div className="flex items-center gap-3 rounded-control border border-app-border bg-app-hairline px-3 py-2.5">
                             <button
                                 type="button"
                                 role="switch"
                                 aria-checked={isHidden}
-                                onClick={() => setIsHidden(v => !v)}
-                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none ${isHidden ? 'bg-slate-700' : 'bg-slate-300'}`}
+                                onClick={() => setIsHidden((v) => !v)}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none ${isHidden ? "bg-app-ink" : "bg-app-border"}`}
                             >
-                                <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isHidden ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                                <span
+                                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isHidden ? "translate-x-4" : "translate-x-0.5"}`}
+                                />
                             </button>
                             <div className="flex items-center gap-1.5">
-                                <EyeOff className="h-4 w-4 text-slate-500" />
-                                <Label className="cursor-pointer text-sm font-medium text-slate-700">Receita oculta</Label>
+                                <EyeOff className="h-4 w-4 text-app-muted" />
+                                <Label className="cursor-pointer text-sm font-medium text-app-ink">
+                                    Fonte oculta
+                                </Label>
                             </div>
                             {isHidden && (
-                                <span className="ml-auto text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-medium">Oculta</span>
+                                <Tag tone="neutral" className="ml-auto">
+                                    Oculta
+                                </Tag>
                             )}
                         </div>
                     )}
 
-                    <Button type="submit" disabled={loading} className="w-full mt-2">
+                    <Button type="submit" disabled={loading} className="mt-2 w-full">
                         {isEdit ? "Salvar Alterações" : "Salvar"}
                     </Button>
                 </form>

@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Surface } from "@/components/ui/surface"
+import { Tag } from "@/components/ui/tag"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,117 +12,113 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { formatCurrency } from "@/lib/utils"
+import { PageHeader } from "@/components/layout/page-header"
 import { IncomeDialog } from "./income-dialog"
-import { Trash2, Power, EyeOff, MoreHorizontal, Edit } from "lucide-react"
+import { Edit, EyeOff, MoreHorizontal, Power, Trash2, Wallet } from "lucide-react"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
-import { getIncomes, deleteIncome, toggleIncome } from "@/app/actions/incomes"
+import {
+    deleteIncomeSource,
+    getIncomeSources,
+    toggleIncomeSource,
+    type IncomeSource,
+} from "@/app/actions/income-sources"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
-type Income = {
-    id: string
-    description: string
-    amount: number
-    is_active: boolean
-    is_hidden: boolean
-    created_at: string
-}
-
-export function IncomesClient({ incomes: initialIncomes }: { incomes: Income[] }) {
+export function IncomeSourcesClient({ sources: initialSources }: { sources: IncomeSource[] }) {
     const { hiddenModeEnabled } = useHiddenMode()
-    const [incomes, setIncomes] = useState<Income[]>(initialIncomes)
-    const [editingIncome, setEditingIncome] = useState<Income | null>(null)
+    const [sources, setSources] = useState<IncomeSource[]>(initialSources)
+    const [editingSource, setEditingSource] = useState<IncomeSource | null>(null)
 
-    // Re-fetch whenever hidden mode changes
     useEffect(() => {
-        getIncomes().then(setIncomes)
+        getIncomeSources().then(setSources).catch(() => undefined)
     }, [hiddenModeEnabled])
 
-    const visibleIncomes = hiddenModeEnabled
-        ? incomes
-        : incomes.filter(i => !i.is_hidden)
-
-    // Total from non-hidden active incomes — mirrors dashboard KPI
-    const totalVisible = incomes
-        .filter(i => i.is_active && !i.is_hidden)
-        .reduce((acc, curr) => acc + curr.amount, 0)
+    const visibleSources = hiddenModeEnabled
+        ? sources
+        : sources.filter((source) => !source.is_hidden)
 
     async function handleRefresh() {
-        const fresh = await getIncomes()
-        setIncomes(fresh)
+        setSources(await getIncomeSources())
     }
 
-    async function handleDelete(id: string) {
-        if (!confirm("Deseja realmente excluir esta receita?")) return
+    async function handleDelete(source: IncomeSource) {
+        const confirmed = confirm(
+            `Excluir "${source.description}"?\n\nO valor dessa fonte será apagado de TODOS os períodos, inclusive os já fechados. Se a intenção é só parar de receber, use Desativar.`
+        )
+        if (!confirmed) return
+
         try {
-            await deleteIncome(id)
-            setIncomes(prev => prev.filter(i => i.id !== id))
-            toast.success("Receita excluída!")
-        } catch (e: any) {
-            toast.error(e.message)
+            await deleteIncomeSource(source.id)
+            setSources((previous) => previous.filter((item) => item.id !== source.id))
+            toast.success("Fonte de receita excluída.")
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "Não foi possível excluir.")
         }
     }
 
-    async function handleToggle(id: string, currentStatus: boolean) {
+    async function handleToggle(source: IncomeSource) {
         try {
-            await toggleIncome(id, currentStatus)
-            setIncomes(prev => prev.map(i => i.id === id ? { ...i, is_active: !currentStatus } : i))
-        } catch (e: any) {
-            toast.error(e.message)
+            await toggleIncomeSource(source.id, source.is_active)
+            setSources((previous) =>
+                previous.map((item) =>
+                    item.id === source.id ? { ...item, is_active: !item.is_active } : item
+                )
+            )
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "Não foi possível alterar.")
         }
     }
 
     return (
         <div className="flex-1 space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Receitas</h2>
-                    <p className="text-muted-foreground">Suas fontes de renda recorrentes</p>
-                </div>
-                <div className="flex items-center gap-4 text-xl font-bold bg-green-100 text-green-800 px-4 py-2 rounded-lg">
-                    Total Visível: {formatCurrency(totalVisible)}
-                </div>
-                <IncomeDialog mode="create" onSuccess={handleRefresh} />
-            </div>
+            <PageHeader
+                title="Fontes de Receita"
+                description="De onde vem o dinheiro. O valor de cada período é informado ao criar ou editar o período em Meses."
+                actions={<IncomeDialog mode="create" onSuccess={handleRefresh} />}
+            />
 
             {hiddenModeEnabled && (
-                <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 rounded-control border border-app-warn-border bg-app-warn-bg px-3 py-2 text-sm text-app-warn">
                     <EyeOff className="h-4 w-4" />
-                    <span>Modo oculto ativo — receitas ocultas estão visíveis abaixo.</span>
+                    <span>Modo oculto ativo — fontes ocultas estão visíveis abaixo.</span>
                 </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {visibleIncomes.map((income) => {
-                    const isHiddenVisible = hiddenModeEnabled && income.is_hidden
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {visibleSources.map((source) => {
+                    const isHiddenVisible = hiddenModeEnabled && source.is_hidden
+
                     return (
-                        <Card
-                            key={income.id}
-                            className={[
-                                !income.is_active ? "opacity-50" : "",
-                                isHiddenVisible ? "opacity-60" : "",
-                            ].filter(Boolean).join(" ")}
+                        <Surface
+                            key={source.id}
+                            className={cn(
+                                "px-4 py-3",
+                                !source.is_active && "opacity-60",
+                                isHiddenVisible && "opacity-70"
+                            )}
                         >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <CardTitle className="text-sm font-medium truncate">{income.description}</CardTitle>
-                                    {isHiddenVisible && (
-                                        <Badge variant="secondary" className="text-[10px] shrink-0 flex items-center gap-1">
-                                            <EyeOff className="h-3 w-3" /> Oculta
-                                        </Badge>
-                                    )}
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <Wallet className="h-4 w-4 shrink-0 text-app-pos" />
+                                    <span className="truncate text-sm font-medium text-app-ink">
+                                        {source.description}
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                    {/* Ativar/Desativar Button */}
+                                <div className="flex shrink-0 items-center gap-1">
                                     <button
-                                        onClick={() => handleToggle(income.id, income.is_active)}
-                                        className="text-gray-500 hover:text-green-700 p-1.5 rounded hover:bg-slate-100"
-                                        title="Ativar/Desativar"
+                                        onClick={() => handleToggle(source)}
+                                        className="rounded p-1.5 text-app-faint hover:bg-app-hairline hover:text-app-pos"
+                                        title={source.is_active ? "Desativar" : "Ativar"}
                                     >
-                                        <Power className={`h-4 w-4 ${income.is_active ? 'text-green-500' : 'text-gray-400'}`} />
+                                        <Power
+                                            className={cn(
+                                                "h-4 w-4",
+                                                source.is_active ? "text-app-pos" : "text-app-faint"
+                                            )}
+                                        />
                                     </button>
 
-                                    {/* Actions dropdown */}
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -133,12 +129,12 @@ export function IncomesClient({ incomes: initialIncomes }: { incomes: Income[] }
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => setEditingIncome(income)}>
+                                            <DropdownMenuItem onClick={() => setEditingSource(source)}>
                                                 <Edit className="mr-2 h-4 w-4 text-blue-500" />
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onClick={() => handleDelete(income.id)}
+                                                onClick={() => handleDelete(source)}
                                                 className="text-red-600 focus:text-red-600"
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -147,34 +143,40 @@ export function IncomesClient({ incomes: initialIncomes }: { incomes: Income[] }
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{formatCurrency(income.amount)}</div>
-                                <p className="text-xs text-muted-foreground">Mensal • {income.is_active ? 'Ativa' : 'Inativa'}</p>
-                            </CardContent>
-                        </Card>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <Tag tone={source.is_active ? "positive" : "neutral"}>
+                                    {source.is_active ? "Ativa" : "Inativa"}
+                                </Tag>
+                                {isHiddenVisible && (
+                                    <Tag tone="warn" className="gap-1">
+                                        <EyeOff className="h-3 w-3" /> Oculta
+                                    </Tag>
+                                )}
+                            </div>
+                        </Surface>
                     )
                 })}
 
-                {visibleIncomes.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-muted-foreground">
-                        Nenhuma receita encontrada.
+                {visibleSources.length === 0 && (
+                    <div className="col-span-full rounded-card border border-dashed border-app-border py-12 text-center text-app-muted">
+                        Nenhuma fonte de receita cadastrada.
                     </div>
                 )}
             </div>
 
-            {/* Edit Dialog — rendered outside the card loop, controlled externally */}
-            {editingIncome && (
+            {editingSource && (
                 <IncomeDialog
                     mode="edit"
-                    income={editingIncome}
-                    open={true}
-                    onOpenChange={(val) => {
-                        if (!val) setEditingIncome(null)
+                    source={editingSource}
+                    open
+                    onOpenChange={(value) => {
+                        if (!value) setEditingSource(null)
                     }}
                     onSuccess={async () => {
                         await handleRefresh()
-                        setEditingIncome(null)
+                        setEditingSource(null)
                     }}
                 />
             )}
