@@ -9,17 +9,10 @@ import type { MonthData } from "@/app/actions/months"
 import { cn, formatCurrency } from "@/lib/utils"
 import { ExpenseActions } from "./expense-actions"
 import { PayPopover } from "./pay-popover"
+import { PAYMENT_METHOD_LABELS, getOccurrenceLabel, isExpenseOverdue } from "./expense-meta"
 import type { Expense } from "./columns"
 
 type CardOption = { id: string; name: string }
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-    PIX: "Pix",
-    DEBIT: "Débito",
-    CASH: "Dinheiro",
-    CREDIT_CARD: "Cartão de crédito",
-    NONE: "",
-}
 
 function buildFormaLabel(expense: Expense, cardsMap: Record<string, string>) {
     if (expense.status !== "PAID") return "—"
@@ -52,19 +45,16 @@ export function ExpenseItem({
     const { hiddenModeEnabled } = useHiddenMode()
     const isPaid = expense.status === "PAID"
     const excludedVisual = hiddenModeEnabled && expense.is_excluded
-    // Comparação só de data (due_date é "yyyy-MM-dd"), sem hora — senão uma
-    // despesa que vence hoje seria marcada como atrasada.
-    const isOverdue = !isPaid && expense.due_date < todayIso
+    const isOverdue = isExpenseOverdue(expense, todayIso)
 
     const dueLabel = format(parseISO(expense.due_date), "dd/MM")
     const formaLabel = buildFormaLabel(expense, cardsMap)
+    const occurrenceLabel = getOccurrenceLabel(expense)
 
-    const occurrenceLabel = expense.recurring_expense_id
-        ? expense.occurrence_total
-            ? `${expense.occurrence_number}/${expense.occurrence_total}`
-            : "Recorrente"
-        : null
-
+    // Abaixo de `sm` as colunas "Forma"/"Vence" (fixas em ~230px + gaps) estouram
+    // a viewport de celular — o cabeçalho já se esconde nesse ponto
+    // (expenses-list.tsx). Aqui elas somem e a mesma informação reaparece numa
+    // segunda linha, abaixo da descrição, só visível em telas estreitas.
     return (
         <div
             className={cn(
@@ -90,11 +80,21 @@ export function ExpenseItem({
                         </Tag>
                     )}
                 </div>
+
+                <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-app-muted sm:hidden">
+                    {formaLabel !== "—" && <span className="truncate">{formaLabel}</span>}
+                    {formaLabel !== "—" && <span className="text-app-faint">·</span>}
+                    {isOverdue ? (
+                        <Tag tone="negative">venceu {dueLabel}</Tag>
+                    ) : (
+                        <span>{dueLabel}</span>
+                    )}
+                </div>
             </div>
 
-            <span className="w-[150px] shrink-0 truncate text-app-muted">{formaLabel}</span>
+            <span className="hidden w-[150px] shrink-0 truncate text-app-muted sm:block">{formaLabel}</span>
 
-            <span className="w-[76px] shrink-0">
+            <span className="hidden w-[76px] shrink-0 sm:block">
                 {isOverdue ? (
                     <Tag tone="negative">venceu {dueLabel}</Tag>
                 ) : (

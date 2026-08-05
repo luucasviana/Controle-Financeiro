@@ -28,17 +28,10 @@ import { cn, formatCurrency } from "@/lib/utils"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import { ExpenseDialog } from "./expenses/expense-dialog"
 import { PayPopover } from "./expenses/pay-popover"
+import { PAYMENT_METHOD_LABELS, getOccurrenceLabel, isExpenseOverdue } from "./expenses/expense-meta"
 
 type ExpenseRow = Database["public"]["Tables"]["month_expenses"]["Row"]
 type CardRow = Database["public"]["Tables"]["cards"]["Row"]
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-    PIX: "Pix",
-    DEBIT: "Débito",
-    CASH: "Dinheiro",
-    CREDIT_CARD: "Cartão de crédito",
-    NONE: "",
-}
 
 function buildMeta(expense: ExpenseRow, cardsMap: Record<string, string>) {
     const parts: string[] = []
@@ -50,9 +43,9 @@ function buildMeta(expense: ExpenseRow, cardsMap: Record<string, string>) {
         parts.push(cardsMap[expense.card_id])
     }
 
-    if (expense.occurrence_number && expense.occurrence_total) {
-        parts.push(`Parcela ${expense.occurrence_number}/${expense.occurrence_total}`)
-    }
+    // Ocorrência (N/total ou "Recorrente") vira badge ao lado da descrição —
+    // ver ExpenseRowItem — para ficar igual ao tratamento de Movimentações,
+    // não repetida aqui como texto.
 
     return parts.join(" · ")
 }
@@ -138,9 +131,10 @@ function ExpenseRowItem({
 
     const isPaid = expense.status === "PAID"
     const excludedVisual = hiddenModeEnabled && expense.is_excluded
-    const isOverdue = !isPaid && expense.due_date < todayIso
+    const isOverdue = isExpenseOverdue(expense, todayIso)
     const meta = buildMeta(expense, cardsMap)
     const dueLabel = format(parseISO(expense.due_date), "dd/MM")
+    const occurrenceLabel = getOccurrenceLabel(expense)
 
     return (
         <div
@@ -156,6 +150,11 @@ function ExpenseRowItem({
                     <span className={cn("truncate text-app-ink", isPaid && "line-through")}>
                         {expense.description}
                     </span>
+                    {occurrenceLabel && (
+                        <Tag tone="neutral" className="shrink-0">
+                            {occurrenceLabel}
+                        </Tag>
+                    )}
                     {excludedVisual && (
                         <Tag tone="warn" className="shrink-0 gap-1">
                             <Calculator className="h-3 w-3" /> Fora do cálculo
@@ -166,8 +165,12 @@ function ExpenseRowItem({
             </div>
 
             {!isPaid && (
-                <span className={cn("shrink-0 text-[11px]", isOverdue ? "text-app-accent" : "text-app-muted")}>
-                    {dueLabel}
+                <span className="shrink-0">
+                    {isOverdue ? (
+                        <Tag tone="negative">venceu {dueLabel}</Tag>
+                    ) : (
+                        <span className="text-[11px] text-app-muted">{dueLabel}</span>
+                    )}
                 </span>
             )}
 
