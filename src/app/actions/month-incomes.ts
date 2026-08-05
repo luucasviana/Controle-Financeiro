@@ -88,6 +88,16 @@ export async function saveMonthIncomes(monthId: string, entries: MonthIncomeEntr
         }
     }
 
+    const { data: month, error: monthError } = await supabase
+        .from("months")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("id", monthId)
+        .maybeSingle()
+
+    if (monthError) throw new Error(monthError.message)
+    if (!month) throw new Error("Período não encontrado.")
+
     const { error } = await supabase.from("month_incomes").upsert(
         entries.map((entry) => ({
             user_id: userId,

@@ -121,15 +121,16 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
         }
     })
 
-    // Composição do período: à vista x cartões, escalados sobre max(receita, despesa total).
+    // Composição do período: à vista x cartões, o que já efetivamente saiu.
     // "Parcelas" não entra — no nosso modelo o consumo do cartão é o valor da fatura
     // digitado em card_month_balances, não uma soma de despesas parceladas.
-    const compositionScale = Math.max(incomeVisible, totalExpense, 1)
-    const cashWidthPct = Math.min(100, (waterfallData.cash_expenses / compositionScale) * 100)
-    const cardsWidthPct = Math.min(100, (waterfallData.cards_total / compositionScale) * 100)
+    // Largura da barra e percentual exibido usam o MESMO denominador (compositionTotal),
+    // senão a barra e o rótulo contam histórias diferentes.
     const compositionTotal = waterfallData.cash_expenses + waterfallData.cards_total
     const cashSharePct = compositionTotal > 0 ? (waterfallData.cash_expenses / compositionTotal) * 100 : 0
     const cardsSharePct = compositionTotal > 0 ? (waterfallData.cards_total / compositionTotal) * 100 : 0
+    const cashWidthPct = cashSharePct
+    const cardsWidthPct = cardsSharePct
 
     const todayIso = format(new Date(), "yyyy-MM-dd")
     const isBalancePositive = projectedBalance >= 0
@@ -213,7 +214,9 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
 
                     <Surface className="p-6">
                         <div className="text-[13px] font-medium text-app-ink">Composição do período</div>
-                        <p className="mt-1 mb-4 text-app-muted">Como a despesa do período se divide</p>
+                        <p className="mt-1 mb-4 text-app-muted">
+                            O que já saiu até agora — à vista e fatura dos cartões, sem incluir despesas previstas
+                        </p>
 
                         <div className="flex h-3 overflow-hidden rounded-control bg-app-hairline">
                             <div className="bg-app-muted" style={{ width: `${cashWidthPct}%` }} />

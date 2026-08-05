@@ -224,6 +224,14 @@ export async function updateRecurringExpense(id: string, formData: FormData) {
 
     if (error) throw new Error(error.message)
 
+    const { error: occurrencesError } = await supabase
+        .from("month_expenses")
+        .update({ occurrence_total: values.total_occurrences })
+        .eq("user_id", userId)
+        .eq("recurring_expense_id", id)
+
+    if (occurrencesError) throw new Error(occurrencesError.message)
+
     await syncRecurringExpensesForUser(userId)
     revalidateDashboardData()
 }
