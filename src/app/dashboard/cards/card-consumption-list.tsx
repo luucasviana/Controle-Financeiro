@@ -1,5 +1,6 @@
 import { deleteCard } from "@/app/actions/cards"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 import { cn, formatCurrency } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
 import { Pencil, Trash2 } from "lucide-react"
@@ -60,16 +61,14 @@ export function CardConsumptionList({
                 const disponivel = card.limit_amount - consumo
 
                 if (variant === "compact") {
+                    const limit = card.limit_amount || 0
+                    const pct = limit > 0 ? Math.min(100, (consumo / limit) * 100) : 0
+
                     return (
-                        <Card key={card.id} className="gap-3 py-4">
-                            <CardHeader className="px-4 pb-0">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                        <CardTitle className="text-sm font-medium">{card.name}</CardTitle>
-                                        <CardDescription className="text-xs">
-                                            {formatUpdatedOn(balanceData.updated_on)}
-                                        </CardDescription>
-                                    </div>
+                        <div key={card.id}>
+                            <div className="mb-2 flex items-baseline justify-between gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <span className="truncate text-app-ink">{card.name}</span>
                                     <UpdateBalanceDialog
                                         cards={cards}
                                         balances={balances}
@@ -78,20 +77,24 @@ export function CardConsumptionList({
                                         trigger={
                                             <button
                                                 type="button"
-                                                className="inline-flex cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                                                title="Editar valor do cartão"
+                                                className="shrink-0 text-app-faint hover:text-app-accent"
                                             >
                                                 <Pencil className="h-3.5 w-3.5" />
-                                                Editar
                                             </button>
                                         }
                                     />
                                 </div>
-                            </CardHeader>
-                            <CardContent className="px-4 pt-0">
-                                <p className="text-xs text-muted-foreground">Consumo do mês</p>
-                                <div className="text-lg font-semibold text-orange-600">{formatCurrency(consumo)}</div>
-                            </CardContent>
-                        </Card>
+                                <span className="shrink-0 font-medium tabular-nums text-app-ink">
+                                    {formatCurrency(consumo)}
+                                </span>
+                            </div>
+                            <Progress value={pct} className="h-1.5" />
+                            <div className="mt-1 flex justify-between text-[11px] text-app-muted">
+                                <span>{formatCurrency(Math.max(0, limit - consumo))} disponível</span>
+                                <span>{pct.toFixed(0)}%</span>
+                            </div>
+                        </div>
                     )
                 }
 

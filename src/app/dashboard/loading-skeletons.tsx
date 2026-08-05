@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Surface } from "@/components/ui/surface"
 
 function PageHeaderSkeleton() {
     return (
@@ -26,20 +27,49 @@ function PanelSkeleton({ rows = 4 }: { rows?: number }) {
     )
 }
 
+function OverviewCardSkeleton({ rows = 4, tall = false }: { rows?: number; tall?: boolean }) {
+    return (
+        <Surface className={tall ? "p-6" : "p-4"}>
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="mt-2 h-3 w-56 max-w-full" />
+            <div className="mt-4 space-y-3">
+                {Array.from({ length: rows }).map((_, index) => (
+                    <Skeleton key={index} className="h-8 w-full" />
+                ))}
+            </div>
+        </Surface>
+    )
+}
+
 export function DashboardOverviewSkeleton() {
     return (
         <div className="flex-1 space-y-6">
             <PageHeaderSkeleton />
+
             <div className="grid gap-4 md:grid-cols-3">
-                <PanelSkeleton rows={2} />
-                <PanelSkeleton rows={2} />
-                <PanelSkeleton rows={2} />
+                {Array.from({ length: 3 }).map((_, index) => (
+                    <Surface key={index} className="px-5 py-4">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="mt-3 h-7 w-32" />
+                    </Surface>
+                ))}
             </div>
-            <div className="grid gap-4 [@media(min-width:1200px)]:grid-cols-2">
-                <PanelSkeleton rows={5} />
-                <PanelSkeleton rows={5} />
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)_336px]">
+                <div className="flex flex-col gap-4">
+                    <OverviewCardSkeleton rows={3} tall />
+                    <OverviewCardSkeleton rows={2} tall />
+                    <OverviewCardSkeleton rows={3} tall />
+                </div>
+                <div className="flex flex-col gap-4">
+                    <OverviewCardSkeleton rows={4} tall />
+                    <OverviewCardSkeleton rows={6} tall />
+                </div>
+                <div className="flex flex-col gap-4">
+                    <OverviewCardSkeleton rows={4} tall />
+                    <OverviewCardSkeleton rows={3} tall />
+                </div>
             </div>
-            <PanelSkeleton rows={6} />
         </div>
     )
 }

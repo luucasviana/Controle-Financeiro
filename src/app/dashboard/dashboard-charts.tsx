@@ -1,69 +1,104 @@
-"use client"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { formatCurrency } from "@/lib/utils"
 
-interface DashboardChartsProps {
+type HistoryMetric = {
+    monthId: string
     monthName: string
-    currentMetrics: {
-        income_visible: number
-        total_expenses: number
-        projected_balance: number
-    }
-    historicalMetrics: any[]
+    income_visible: number
+    total_expenses: number
+}
+
+interface DashboardChartsProps {
+    historicalMetrics: HistoryMetric[]
     className?: string
 }
 
-export function DashboardCharts({ historicalMetrics, className = "" }: DashboardChartsProps) {
-    const barData = historicalMetrics.map(m => ({
-        name: m.monthName,
-        Receita: m.income_visible,
-        Despesa: m.total_expenses,
-    }))
+const CHART_HEIGHT = 140
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-3 border rounded-lg shadow-sm text-sm">
-                    <p className="font-semibold mb-2">{label}</p>
-                    {payload.map((entry: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-slate-600">{entry.name}:</span>
-                            <span className="font-semibold">{formatCurrency(entry.value)}</span>
-                        </div>
-                    ))}
-                </div>
-            )
-        }
-        return null
+function formatAxisLabel(value: number) {
+    if (value <= 0) return "0"
+    if (value >= 1000) {
+        const thousands = value / 1000
+        return `${Number.isInteger(thousands) ? thousands : thousands.toFixed(1)}k`
     }
+    return String(Math.round(value))
+}
+
+export function DashboardCharts({ historicalMetrics, className = "" }: DashboardChartsProps) {
+    const maxValue = historicalMetrics.reduce(
+        (acc, metric) => Math.max(acc, metric.income_visible, metric.total_expenses),
+        0
+    )
+    const axisTop = maxValue > 0 ? Math.ceil(maxValue / 1000) * 1000 : 1000
 
     return (
-        <Card className={`flex flex-col h-auto [@media(min-width:1200px)]:h-[420px] ${className}`}>
-            <CardHeader className="shrink-0">
-                <CardTitle className="text-sm font-medium">Comparativo Mensal (Receita vs Despesa)</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col min-h-0 pb-4">
-                <div className="flex-1 min-h-[260px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                            <YAxis
-                                tickLine={false}
-                                axisLine={false}
-                                tick={{ fontSize: 10 }}
-                                tickFormatter={(value) => `R$${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`}
-                            />
-                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-                            <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
-                            <Bar dataKey="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={36} />
-                            <Bar dataKey="Despesa" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={36} />
-                        </BarChart>
-                    </ResponsiveContainer>
+        <div className={className}>
+            <div className="flex items-center justify-end gap-4 text-[11px] text-app-muted">
+                <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-xs bg-app-muted" /> Receita
+                </span>
+                <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-xs bg-app-border" /> Despesa
+                </span>
+                <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-xs bg-app-accent" /> Acima da receita
+                </span>
+            </div>
+
+            <div className="relative mt-6 border-b border-app-border pl-9" style={{ height: CHART_HEIGHT }}>
+                <div className="absolute inset-x-9 top-0 border-t border-app-hairline" />
+                <div className="absolute inset-x-9 top-1/2 border-t border-app-hairline" />
+                <span className="absolute left-0 top-0 -translate-y-1/2 text-[10px] text-app-muted">
+                    {formatAxisLabel(axisTop)}
+                </span>
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-app-muted">
+                    {formatAxisLabel(axisTop / 2)}
+                </span>
+                <span className="absolute bottom-0 left-0 translate-y-1/2 text-[10px] text-app-muted">0</span>
+
+                <div className="flex h-full items-end gap-1">
+                    {historicalMetrics.map((metric) => {
+                        const incomeHeight = Math.min(
+                            CHART_HEIGHT,
+                            (metric.income_visible / axisTop) * CHART_HEIGHT
+                        )
+                        const normalExpense = Math.min(metric.total_expenses, metric.income_visible)
+                        const excessExpense = Math.max(0, metric.total_expenses - metric.income_visible)
+                        const normalHeight = Math.min(CHART_HEIGHT, (normalExpense / axisTop) * CHART_HEIGHT)
+                        const excessHeight = Math.min(CHART_HEIGHT, (excessExpense / axisTop) * CHART_HEIGHT)
+
+                        return (
+                            <div
+                                key={metric.monthId}
+                                className="flex h-full flex-1 items-end justify-center gap-[3px]"
+                            >
+                                <div
+                                    className="w-2.5 rounded-t-xs bg-app-muted"
+                                    style={{ height: incomeHeight }}
+                                    title={`Receita: ${formatCurrency(metric.income_visible)}`}
+                                />
+                                <div
+                                    className="flex w-2.5 flex-col-reverse overflow-hidden rounded-t-xs"
+                                    style={{ height: normalHeight + excessHeight }}
+                                    title={`Despesa: ${formatCurrency(metric.total_expenses)}`}
+                                >
+                                    <div className="bg-app-border" style={{ height: normalHeight }} />
+                                    {excessHeight > 0 && (
+                                        <div className="bg-app-accent" style={{ height: excessHeight }} />
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+
+            <div className="mt-2 flex gap-1 pl-9">
+                {historicalMetrics.map((metric) => (
+                    <div key={metric.monthId} className="flex-1 truncate text-center text-[10px] text-app-muted">
+                        {metric.monthName}
+                    </div>
+                ))}
+            </div>
+        </div>
     )
 }
