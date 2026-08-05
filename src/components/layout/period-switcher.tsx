@@ -37,7 +37,7 @@ export function PeriodSwitcher({ months }: { months: MonthData[] }) {
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
-                    className="flex h-[34px] items-center gap-2 rounded-control border border-app-border bg-app-surface px-3 text-app-ink transition-colors hover:border-slate-300"
+                    className="flex h-[34px] items-center gap-2 rounded-control border border-app-border bg-app-surface px-3 text-app-ink transition-colors hover:border-app-muted"
                 >
                     <span className="font-semibold">{active.name}</span>
                     <Tag tone={active.status === "OPEN" ? "positive" : "neutral"}>

@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils"
 
 const TONES = {
     neutral: "bg-app-hairline text-app-muted",
-    positive: "bg-app-pos-bg text-app-pos",
-    negative: "bg-app-neg-bg text-app-neg",
+    positive: "bg-app-pos-bg text-app-ink",
+    negative: "bg-app-neg-bg text-app-accent-pale",
     warn: "bg-app-warn-bg text-app-warn",
 } as const
 

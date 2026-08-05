@@ -5,8 +5,8 @@ import { Info, type LucideIcon } from "lucide-react"
 type KpiTone = "positive" | "negative" | "neutral"
 
 const TONE_CLASSES: Record<KpiTone, { value: string; icon: string }> = {
-    positive: { value: "text-app-pos", icon: "text-app-pos" },
-    negative: { value: "text-app-neg", icon: "text-app-neg" },
+    positive: { value: "text-app-ink", icon: "text-app-faint" },
+    negative: { value: "text-app-accent", icon: "text-app-accent" },
     neutral: { value: "text-app-ink", icon: "text-app-faint" },
 }
 

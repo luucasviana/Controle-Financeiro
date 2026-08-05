@@ -27,7 +27,7 @@ export function ClosedPeriodBanner({ month }: { month: MonthData | null }) {
 
     return (
         <div className="flex flex-wrap items-center gap-2.5 border-b border-app-warn-border bg-app-warn-bg px-5 py-2 text-app-warn">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+            <span className="h-1.5 w-1.5 rounded-full bg-app-warn" />
             <span className="font-medium">
                 Período encerrado — os valores abaixo são de um período fechado.
             </span>
@@ -35,7 +35,7 @@ export function ClosedPeriodBanner({ month }: { month: MonthData | null }) {
                 type="button"
                 onClick={handleReopen}
                 disabled={pending}
-                className="ml-auto h-[26px] rounded-lg border border-amber-300 bg-white px-2.5 font-semibold text-app-warn disabled:opacity-60"
+                className="ml-auto h-[26px] rounded-lg border border-app-warn-border bg-app-surface px-2.5 font-semibold text-app-warn disabled:opacity-60"
             >
                 {pending ? "Reabrindo..." : "Reabrir período"}
             </button>

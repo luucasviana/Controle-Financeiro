@@ -19,13 +19,13 @@ export function Header({ months }: { months: MonthData[] }) {
     const showPeriod = isMonthScopedPath(pathname)
 
     return (
-        <header className="sticky top-0 z-30 flex min-h-[54px] flex-wrap items-center gap-4 border-b border-app-border bg-app-surface px-4 md:px-5">
+        <header className="sticky top-0 z-30 flex min-h-[54px] flex-wrap items-center gap-4 bg-app-surface px-4 md:px-5">
             <div className="md:hidden">
                 <MobileSidebar />
             </div>
 
             <Link href="/dashboard" className="flex items-center gap-2">
-                <span className="h-5 w-5 rounded-md bg-app-ink" />
+                <span className="h-5 w-5 rounded-md bg-app-accent" />
                 <span className="text-[15px] font-semibold tracking-tight">Controle</span>
             </Link>
 
@@ -35,7 +35,7 @@ export function Header({ months }: { months: MonthData[] }) {
 
             <div className="ml-auto flex items-center gap-2.5">
                 {hiddenModeEnabled && (
-                    <Tag tone="neutral" className="gap-1 bg-app-ink text-white">
+                    <Tag tone="neutral" className="gap-1 bg-app-accent text-app-bg">
                         <EyeOff className="h-3 w-3" />
                         Modo oculto
                     </Tag>

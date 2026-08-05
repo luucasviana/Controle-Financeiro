@@ -2,7 +2,7 @@ import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react"
 
 export function VariacaoBadge({ valor, inverted }: { valor?: number | null, inverted?: boolean }) {
     if (valor === undefined) return null;
-    if (valor === null) return <span className="text-xs font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Novo</span>
+    if (valor === null) return <span className="text-xs font-medium text-app-muted bg-app-hairline px-1.5 py-0.5 rounded">Novo</span>
 
     const isPositive = valor > 0;
     const isZero = valor === 0;
@@ -10,8 +10,8 @@ export function VariacaoBadge({ valor, inverted }: { valor?: number | null, inve
     // Inverted means "positive is bad" (for expenses).
     const isGood = isZero ? true : inverted ? !isPositive : isPositive;
 
-    // Color logic
-    const colorClass = isZero ? 'text-slate-500 bg-slate-100' : isGood ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100';
+    // Color logic — mono scheme: favorable is normal ink, unfavorable is accent.
+    const colorClass = isZero ? 'text-app-muted bg-app-hairline' : isGood ? 'text-app-muted bg-app-hairline' : 'text-app-accent bg-app-neg-bg';
     const Icon = isZero ? Minus : isPositive ? ArrowUpRight : ArrowDownRight;
 
     return (

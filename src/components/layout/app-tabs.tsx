@@ -39,8 +39,8 @@ export function AppTabs({ orientation = "horizontal" }: { orientation?: "horizon
                             "rounded-control px-3 py-1.5 text-sm font-semibold transition-colors",
                             orientation === "vertical" && "w-full",
                             isActive
-                                ? "bg-app-ink text-white"
-                                : "text-app-muted hover:bg-app-hairline hover:text-app-ink"
+                                ? "text-app-accent"
+                                : "text-app-muted hover:text-app-ink"
                         )}
                     >
                         {tab.label}

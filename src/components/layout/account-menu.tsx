@@ -18,7 +18,7 @@ export function AccountMenu({ initials = "LK" }: { initials?: string }) {
                 <button
                     type="button"
                     aria-label="Conta"
-                    className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-app-border bg-slate-50 text-[11px] font-bold text-slate-600 transition-colors hover:border-slate-300"
+                    className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-app-border bg-app-hairline text-[11px] font-bold text-app-muted transition-colors hover:border-app-muted"
                 >
                     {initials}
                 </button>

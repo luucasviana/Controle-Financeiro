@@ -10,7 +10,7 @@ export function Surface({
     return (
         <div
             className={cn(
-                "rounded-card border border-app-border bg-app-surface shadow-card",
+                "rounded-card bg-app-surface shadow-card",
                 className
             )}
         >
