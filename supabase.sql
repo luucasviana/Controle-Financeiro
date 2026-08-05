@@ -71,6 +71,11 @@ create table if not exists public.recurring_expenses (
     is_active boolean not null default true,
     is_archived boolean not null default false,
     base_month_id uuid null references public.months(id) on delete set null,
+    -- Método provável de pagamento. É só uma sugestão para pré-selecionar o
+    -- popover na hora de marcar a despesa como paga; NÃO é gravado nos
+    -- lançamentos gerados, que nascem sempre com 'NONE'.
+    payment_method public.payment_method not null default 'NONE',
+    card_id uuid null references public.cards(id) on delete set null,
     created_at timestamptz not null default now()
 );
 
