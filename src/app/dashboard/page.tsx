@@ -99,7 +99,13 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
     })
 
     const expenseRows: ExpenseRow[] = expenses
-    const pendingExpenses = expenseRows.filter((expense) => expense.status === "PLANNED")
+    // Card "A pagar" quer a lista por vencimento mais próximo primeiro. due_date é string
+    // yyyy-MM-dd, então a comparação lexicográfica já é cronológica (sem conversão para Date).
+    // Desempate: mesmo dia, maior valor primeiro. sortExpenses (utils.ts) não é usada aqui de
+    // propósito — ela ordena por status/valor e é compartilhada com outras telas.
+    const pendingExpenses = expenseRows
+        .filter((expense) => expense.status === "PLANNED")
+        .sort((a, b) => a.due_date.localeCompare(b.due_date) || b.amount - a.amount)
     const paidExpenses = expenseRows.filter((expense) => expense.status === "PAID")
     const jaPago = paidExpenses
         .filter((expense) => !expense.is_excluded)
