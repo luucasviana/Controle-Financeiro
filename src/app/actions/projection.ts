@@ -8,16 +8,16 @@ import { buildInstallmentRowsToInsert, type InstallmentExpenseRow, type Installm
 
 export async function getProjection() {
     return measureServerTiming("get-projection", async () => {
-        const supabase = await createClient() as any
+        const supabase = await createClient()
         const { defaultMonth, userId } = await getDashboardShellData()
         if (!defaultMonth) return []
 
-        const [{ data: incomes }, { data: templates }, { data: futureMonths }, { data: installmentPlans }, { data: installmentRows }] = await Promise.all([
-            supabase
-                .from("recurring_incomes")
-                .select("amount")
-                .eq("user_id", userId)
-                .eq("is_active", true),
+        const [
+            { data: templates },
+            { data: futureMonths },
+            { data: installmentPlans },
+            { data: installmentRows },
+        ] = await Promise.all([
             supabase
                 .from("recurring_expense_templates")
                 .select("amount")
@@ -46,7 +46,20 @@ export async function getProjection() {
         const months = (futureMonths || []) as MonthData[]
         if (months.length === 0) return []
 
-        const totalIncome = (incomes || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0)
+        const { data: incomeRows, error: incomeError } = await supabase
+            .from("month_incomes")
+            .select("month_id, amount")
+            .eq("user_id", userId)
+            .in("month_id", months.map((month) => month.id))
+
+        if (incomeError) throw new Error(incomeError.message)
+
+        const incomeByMonth = new Map<string, number>()
+
+        for (const row of incomeRows ?? []) {
+            incomeByMonth.set(row.month_id, (incomeByMonth.get(row.month_id) ?? 0) + row.amount)
+        }
+
         const templateExpense = (templates || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0)
         const pendingInstallmentRows = buildInstallmentRowsToInsert(
             months,
@@ -93,12 +106,13 @@ export async function getProjection() {
             const generatedTemplateExpense = totals?.hasGeneratedTemplate ? totals.templateExpenseAmount : templateExpense
             const projectedInstallments = pendingInstallmentAmountByMonth.get(month.id) || 0
             const expense = (totals?.isolatedExpenseAmount || 0) + generatedTemplateExpense + projectedInstallments
+            const income = incomeByMonth.get(month.id) ?? 0
 
             return {
                 monthLabel: month.name,
-                income: totalIncome,
+                income,
                 expense,
-                balance: totalIncome - expense,
+                balance: income - expense,
             }
         })
     })

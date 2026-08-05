@@ -3,6 +3,7 @@
 import { cache } from "react"
 import { format } from "date-fns"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentUserId } from "./auth-context"
 import type { MonthData } from "./months"
 import { sortExpenses } from "@/lib/utils"
 import { revalidateDashboardData } from "./revalidation"
@@ -38,40 +39,46 @@ type MonthFinanceSnapshot = IncomeSummary & {
     projectedBalance: number
 }
 
-const getCurrentUserId = cache(async () => {
-    const supabase = await createClient() as any
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+const getHiddenSourceIds = cache(async (userId: string): Promise<Set<string>> => {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from("income_sources")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("is_hidden", true)
 
-    if (!user) {
-        throw new Error("Unauthorized")
-    }
+    if (error) throw new Error(error.message)
 
-    return user.id
+    return new Set((data ?? []).map((source) => source.id))
 })
 
-const getIncomeSummary = cache(async (userId: string): Promise<IncomeSummary> => {
-    const supabase = await createClient() as any
-    const [{ data: visibleIncomes }, { data: allIncomes }] = await Promise.all([
-        supabase
-            .from("recurring_incomes")
-            .select("amount")
-            .eq("user_id", userId)
-            .eq("is_active", true)
-            .eq("is_hidden", false),
-        supabase
-            .from("recurring_incomes")
-            .select("amount")
-            .eq("user_id", userId)
-            .eq("is_active", true),
-    ])
+const getIncomeSummaryForMonth = cache(
+    async (userId: string, monthId: string): Promise<IncomeSummary> => {
+        const supabase = await createClient()
+        const [hiddenSourceIds, { data: rows, error }] = await Promise.all([
+            getHiddenSourceIds(userId),
+            supabase
+                .from("month_incomes")
+                .select("source_id, amount")
+                .eq("user_id", userId)
+                .eq("month_id", monthId),
+        ])
 
-    return {
-        incomeVisible: (visibleIncomes || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0),
-        incomeTotalForBalance: (allIncomes || []).reduce((acc: number, curr: { amount: number }) => acc + curr.amount, 0),
+        if (error) throw new Error(error.message)
+
+        let incomeVisible = 0
+        let incomeTotalForBalance = 0
+
+        for (const row of rows ?? []) {
+            incomeTotalForBalance += row.amount
+            if (!hiddenSourceIds.has(row.source_id)) {
+                incomeVisible += row.amount
+            }
+        }
+
+        return { incomeVisible, incomeTotalForBalance }
     }
-})
+)
 
 const getMonthRows = cache(async (userId: string, monthId: string) => {
     const supabase = await createClient() as any
@@ -96,7 +103,7 @@ const getMonthRows = cache(async (userId: string, monthId: string) => {
 
 const getMonthFinanceSnapshot = cache(async (userId: string, monthId: string): Promise<MonthFinanceSnapshot> => {
     const [{ incomeVisible, incomeTotalForBalance }, { expenses, monthBalances }] = await Promise.all([
-        getIncomeSummary(userId),
+        getIncomeSummaryForMonth(userId, monthId),
         getMonthRows(userId, monthId),
     ])
 
@@ -285,7 +292,11 @@ export async function createMonthExpense(formData: FormData) {
     const month_id = formData.get("month_id") as string
     let due_date = formData.get("due_date") as string
     const description = formData.get("description") as string
-    const amount = parseFloat(formData.get("amount") as string)
+    const amount = Number(formData.get("amount"))
+
+    if (!Number.isFinite(amount) || amount < 0) {
+        throw new Error("Informe um valor de despesa válido.")
+    }
     const status = formData.get("status") as "PLANNED" | "PAID"
     let payment_method = formData.get("payment_method") as "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
     let card_id = (formData.get("card_id") as string) || null
@@ -300,10 +311,10 @@ export async function createMonthExpense(formData: FormData) {
         paid_at = null
     } else {
         if (!payment_method || payment_method === "NONE") {
-            throw new Error("MÃ©todo de pagamento Ã© obrigatÃ³rio para despesas pagas.")
+            throw new Error("Método de pagamento é obrigatório para despesas pagas.")
         }
         if (payment_method === "CREDIT_CARD" && !card_id) {
-            throw new Error("O cartÃ£o Ã© obrigatÃ³rio para pagamentos via crÃ©dito.")
+            throw new Error("O cartão é obrigatório para pagamentos via crédito.")
         }
         if (!paid_at) {
             paid_at = new Date().toISOString()
@@ -350,7 +361,11 @@ export async function updateMonthExpense(formData: FormData) {
     const month_id = formData.get("month_id") as string
     const due_date = formData.get("due_date") as string
     const description = formData.get("description") as string
-    const amount = parseFloat(formData.get("amount") as string)
+    const amount = Number(formData.get("amount"))
+
+    if (!Number.isFinite(amount) || amount < 0) {
+        throw new Error("Informe um valor de despesa válido.")
+    }
     const status = formData.get("status") as "PLANNED" | "PAID"
     let paymentMethod = formData.get("payment_method") as "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
     let cardId = (formData.get("card_id") as string) || null
@@ -365,10 +380,10 @@ export async function updateMonthExpense(formData: FormData) {
         paidAt = null
     } else {
         if (!paymentMethod || paymentMethod === "NONE") {
-            throw new Error("MÃ©todo de pagamento Ã© obrigatÃ³rio para despesas pagas.")
+            throw new Error("Método de pagamento é obrigatório para despesas pagas.")
         }
         if (paymentMethod === "CREDIT_CARD" && !cardId) {
-            throw new Error("O cartÃ£o Ã© obrigatÃ³rio para pagamentos via crÃ©dito.")
+            throw new Error("O cartão é obrigatório para pagamentos via crédito.")
         }
         if (!paidAt) {
             paidAt = new Date().toISOString()
@@ -434,21 +449,27 @@ export async function getMetricsForMonths(months: MonthData[]) {
         }
 
         const userId = await getCurrentUserId()
-        const { incomeVisible, incomeTotalForBalance } = await getIncomeSummary(userId)
         const monthIds = months.map((month) => month.id)
-        const supabase = await createClient() as any
-        const [{ data: expenses }, { data: monthBalances }] = await Promise.all([
-            supabase
-                .from("month_expenses")
-                .select("month_id, amount, status, payment_method, is_excluded")
-                .eq("user_id", userId)
-                .in("month_id", monthIds),
-            supabase
-                .from("card_month_balances")
-                .select("month_id, amount_current")
-                .eq("user_id", userId)
-                .in("month_id", monthIds),
-        ])
+        const supabase = await createClient()
+        const [hiddenSourceIds, { data: expenses }, { data: monthBalances }, { data: incomeRows }] =
+            await Promise.all([
+                getHiddenSourceIds(userId),
+                supabase
+                    .from("month_expenses")
+                    .select("month_id, amount, status, payment_method, is_excluded")
+                    .eq("user_id", userId)
+                    .in("month_id", monthIds),
+                supabase
+                    .from("card_month_balances")
+                    .select("month_id, amount_current")
+                    .eq("user_id", userId)
+                    .in("month_id", monthIds),
+                supabase
+                    .from("month_incomes")
+                    .select("month_id, source_id, amount")
+                    .eq("user_id", userId)
+                    .in("month_id", monthIds),
+            ])
 
         const expensesByMonth = new Map<string, Array<Pick<ExpenseRow, "month_id" | "amount" | "status" | "payment_method" | "is_excluded">>>()
         const balancesByMonth = new Map<string, Array<{ amount_current: number }>>()
@@ -465,6 +486,17 @@ export async function getMetricsForMonths(months: MonthData[]) {
             balancesByMonth.set(balance.month_id, current)
         }
 
+        const incomeByMonth = new Map<string, { visible: number; total: number }>()
+
+        for (const row of incomeRows ?? []) {
+            const current = incomeByMonth.get(row.month_id) ?? { visible: 0, total: 0 }
+            current.total += row.amount
+            if (!hiddenSourceIds.has(row.source_id)) {
+                current.visible += row.amount
+            }
+            incomeByMonth.set(row.month_id, current)
+        }
+
         return months.map((month) => {
             const monthExpenses = expensesByMonth.get(month.id) || []
             const includedExpenses = monthExpenses.filter((expense) =>
@@ -474,15 +506,16 @@ export async function getMetricsForMonths(months: MonthData[]) {
             const monthCardBalances = balancesByMonth.get(month.id) || []
             const cardTotal = monthCardBalances.reduce((acc, curr) => acc + curr.amount_current, 0)
             const totalExpense = totalExpensesNonCard + cardTotal
+            const monthIncome = incomeByMonth.get(month.id) ?? { visible: 0, total: 0 }
 
             return {
                 monthId: month.id,
                 monthName: month.name,
                 start_date: month.start_date,
-                income_visible: incomeVisible,
-                income_total: incomeTotalForBalance,
+                income_visible: monthIncome.visible,
+                income_total: monthIncome.total,
                 total_expenses: totalExpense,
-                projected_balance: incomeTotalForBalance - totalExpense,
+                projected_balance: monthIncome.total - totalExpense,
             }
         })
     })

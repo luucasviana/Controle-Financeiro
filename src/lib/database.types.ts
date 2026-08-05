@@ -189,6 +189,36 @@ export interface Database {
                 }
                 Relationships: []
             }
+            card_month_balances: {
+                Row: {
+                    id: string
+                    user_id: string
+                    card_id: string
+                    month_id: string
+                    amount_current: number
+                    updated_on: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    card_id: string
+                    month_id: string
+                    amount_current?: number
+                    updated_on?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    card_id?: string
+                    month_id?: string
+                    amount_current?: number
+                    updated_on?: string
+                    updated_at?: string
+                }
+                Relationships: []
+            }
             month_expenses: {
                 Row: {
                     id: string
