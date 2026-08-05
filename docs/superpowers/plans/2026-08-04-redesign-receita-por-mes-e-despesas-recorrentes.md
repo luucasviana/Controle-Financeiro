@@ -38,7 +38,7 @@ O design system `_ds/nocturne-*` anexado ao projeto é escuro e **não correspon
 ## Global Constraints
 
 - Todo texto de interface em **pt-BR**. Todo arquivo salvo em **UTF-8 sem BOM** — há mojibake em `src/app/actions/finance.ts` que este plano corrige; não introduza mais.
-- **Proibido `as any` em qualquer arquivo tocado por este plano.** Use o client tipado: `const supabase = await createClient()` sem cast. Isso não é estética — é o que faz o compilador pegar as colunas renomeadas pelas migrações. Arquivos não tocados por este plano podem manter o `as any` existente.
+- **Proibido `as any` em código novo ou reescrito por este plano.** Use o client tipado: `const supabase = await createClient()` sem cast. Isso não é estética — é o que faz o compilador pegar as colunas renomeadas pelas migrações. Em arquivo legado que você só edita pontualmente (`cards.ts`, `months.ts`, `transactions.ts`), converta **as funções que você tocar** e deixe o resto do arquivo como está; não faça varredura.
 - Toda query de mutação (`insert`/`update`/`delete`/`upsert`) **deve** filtrar por `.eq("user_id", userId)` além do id. RLS é a segunda barreira, não a primeira.
 - Toda leitura de `formData` numérica passa por validação explícita antes de ir ao banco. `NaN` nunca chega ao Postgres.
 - **O agente executor NÃO tem acesso ao banco Supabase.** As tasks 4 e 9 produzem arquivos `.sql` que o **usuário roda manualmente** no SQL Editor do Supabase. O agente para e pede confirmação antes de seguir para a task seguinte.
@@ -1996,25 +1996,26 @@ export async function updateMonth(
     formData: FormData,
     incomes: MonthIncomeEntry[] = []
 ) {
-    const supabase = await createClient() as any
-    const name = formData.get("name") as string
-    const start_date = formData.get("start_date") as string
-    const end_date = formData.get("end_date") as string
+    const supabase = await createClient()
+    const userId = await getCurrentUserId()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error("Unauthorized")
-
-    const { error } = await supabase.from("months").update({
-        name,
-        start_date,
-        end_date
-    }).eq("user_id", user.id).eq("id", id)
+    const { error } = await supabase
+        .from("months")
+        .update({
+            name: formData.get("name") as string,
+            start_date: formData.get("start_date") as string,
+            end_date: formData.get("end_date") as string,
+        })
+        .eq("user_id", userId)
+        .eq("id", id)
 
     if (error) throw new Error(error.message)
 
     await saveMonthIncomes(id, incomes)
     revalidateDashboardShell()
 }
+
+Acrescente `import { getCurrentUserId } from "./auth-context"` ao topo de `months.ts`. `createMonth` também é tocada nesta task — converta o `as any` dela junto, pela mesma regra. As demais funções do arquivo (`getMonths`, `setMonthStatus`, `deleteMonth`…) ficam como estão.
 ```
 
 Poder editar as receitas de um mês antigo é o caminho para corrigir o histórico manualmente depois do backfill.
