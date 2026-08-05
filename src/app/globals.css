@@ -124,3 +124,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+@theme {
+  --color-app-bg: #f5f7fa;
+  --color-app-surface: #ffffff;
+  --color-app-border: #e2e8f0;
+  --color-app-hairline: #f1f5f9;
+  --color-app-ink: #0f172a;
+  --color-app-ink-soft: #1e293b;
+  --color-app-muted: #64748b;
+  --color-app-faint: #94a3b8;
+  --color-app-link: #0ea5e9;
+  --color-app-pos: #059669;
+  --color-app-pos-bg: #ecfdf5;
+  --color-app-neg: #dc2626;
+  --color-app-neg-bg: #fef2f2;
+  --color-app-warn: #92400e;
+  --color-app-warn-bg: #fffbeb;
+  --color-app-warn-border: #fde68a;
+
+  --radius-card: 16px;
+  --radius-control: 9px;
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-menu: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+@keyframes app-tin {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -12,7 +12,7 @@ import { getDashboardContext } from "./data"
 import { DashboardCharts } from "./dashboard-charts"
 import { ExpenseDialog } from "./expenses/expense-dialog"
 import { ExpenseItem } from "./expenses/expense-item"
-import { VariacaoBadge } from "./variacao-badge"
+import { VariacaoBadge } from "@/components/ui/variacao-badge"
 
 export default async function DashboardPage(props: { searchParams: Promise<{ monthId?: string }> }) {
     const { activeMonth, months } = await measureServerTiming("dashboard-page", async () => {
