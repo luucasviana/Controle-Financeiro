@@ -13,13 +13,18 @@ import { Input } from "@/components/ui/input"
 import { CurrencyInput } from "@/components/ui/currency-input"
 import { Label } from "@/components/ui/label"
 import { Segmented } from "@/components/ui/segmented"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
     createRecurringExpense,
     updateRecurringExpense,
     type RecurringExpenseSummary,
 } from "@/app/actions/recurring-expenses"
+import { getCards } from "@/app/actions/cards"
 import { toast } from "sonner"
 import { PlusCircle } from "lucide-react"
+
+type CardOption = { id: string; name: string }
+type SuggestedPaymentMethod = "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
 
 interface RecurringExpenseDialogProps {
     mode?: "create" | "edit"
@@ -51,6 +56,9 @@ export function RecurringExpenseDialog({
     const [durationMode, setDurationMode] = useState<DurationMode>("deadline")
     const [totalOccurrences, setTotalOccurrences] = useState(12)
     const [startsInCurrentMonth, setStartsInCurrentMonth] = useState(true)
+    const [paymentMethod, setPaymentMethod] = useState<SuggestedPaymentMethod>("NONE")
+    const [cardId, setCardId] = useState("")
+    const [cards, setCards] = useState<CardOption[]>([])
 
     const isEdit = mode === "edit"
     const hasDeadline = durationMode === "deadline"
@@ -65,6 +73,8 @@ export function RecurringExpenseDialog({
             setDurationMode(plan.total_occurrences !== null ? "deadline" : "open-ended")
             setTotalOccurrences(plan.total_occurrences ?? 12)
             setStartsInCurrentMonth(plan.starts_in_current_month)
+            setPaymentMethod(plan.payment_method || "NONE")
+            setCardId(plan.card_id || "")
         } else {
             setDescription("")
             setAmountValue(undefined)
@@ -72,7 +82,11 @@ export function RecurringExpenseDialog({
             setDurationMode("deadline")
             setTotalOccurrences(12)
             setStartsInCurrentMonth(true)
+            setPaymentMethod("NONE")
+            setCardId("")
         }
+
+        getCards().then(setCards)
     }, [open, plan])
 
     function handleOpenChange(value: boolean) {
@@ -84,6 +98,10 @@ export function RecurringExpenseDialog({
         setLoading(true)
         formData.append("starts_in_current_month", String(startsInCurrentMonth))
         formData.append("has_deadline", String(hasDeadline))
+        formData.append("payment_method", paymentMethod)
+        if (paymentMethod === "CREDIT_CARD" && cardId) {
+            formData.append("card_id", cardId)
+        }
 
         try {
             if (isEdit && plan) {
@@ -158,6 +176,48 @@ export function RecurringExpenseDialog({
                                 onChange={(event) => setDueDay(Number(event.target.value))}
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="recurring_payment_method">Como você costuma pagar</Label>
+                        <Select
+                            value={paymentMethod}
+                            onValueChange={(value) => {
+                                setPaymentMethod(value as SuggestedPaymentMethod)
+                                if (value !== "CREDIT_CARD") setCardId("")
+                            }}
+                        >
+                            <SelectTrigger id="recurring_payment_method" className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="NONE">Não definir agora</SelectItem>
+                                <SelectItem value="PIX">Pix</SelectItem>
+                                <SelectItem value="DEBIT">Débito</SelectItem>
+                                <SelectItem value="CASH">Dinheiro</SelectItem>
+                                <SelectItem value="CREDIT_CARD">Cartão de crédito</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {paymentMethod === "CREDIT_CARD" && (
+                            <Select value={cardId} onValueChange={setCardId}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione o cartão..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {cards.map((card) => (
+                                        <SelectItem key={card.id} value={card.id}>
+                                            {card.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+
+                        <p className="text-xs text-app-muted">
+                            É só uma sugestão para agilizar: quando você marcar um lançamento como
+                            pago, ele já vem com isso preenchido, mas dá para trocar na hora.
+                        </p>
                     </div>
 
                     <div className="space-y-2">

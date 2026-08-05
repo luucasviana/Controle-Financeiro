@@ -6,6 +6,7 @@ import { Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { MonthData } from "@/app/actions/months"
+import type { PaymentSuggestion } from "@/app/actions/recurring-expenses"
 import { formatCurrency } from "@/lib/utils"
 import { ExpenseDialog } from "./expense-dialog"
 import { ExpenseItem } from "./expense-item"
@@ -17,6 +18,7 @@ interface ExpensesListProps {
     data: Expense[]
     month: MonthData
     cards: CardOption[]
+    paymentSuggestions: Record<string, PaymentSuggestion>
     projectedBalance: number
     todayIso: string
 }
@@ -25,6 +27,7 @@ export function ExpensesList({
     data,
     month,
     cards,
+    paymentSuggestions,
     projectedBalance,
     todayIso,
 }: ExpensesListProps) {
@@ -53,7 +56,7 @@ export function ExpensesList({
         return map
     }, [cards])
 
-    const itemProps = { cardsMap, cards, month, projectedBalance, todayIso }
+    const itemProps = { cardsMap, cards, paymentSuggestions, month, projectedBalance, todayIso }
 
     return (
         <div>

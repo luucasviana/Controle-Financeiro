@@ -3,6 +3,7 @@ import { PiggyBank, Receipt } from "lucide-react"
 
 import { getDashboardData } from "@/app/actions/finance"
 import { getCards } from "@/app/actions/cards"
+import { getPaymentSuggestions } from "@/app/actions/recurring-expenses"
 import { PageHeader } from "@/components/layout/page-header"
 import { KpiCard } from "@/components/ui/kpi-card"
 import { Surface } from "@/components/ui/surface"
@@ -21,9 +22,10 @@ export default async function ExpensesPage(props: { searchParams: Promise<{ mont
         return <div className="p-8 text-center text-app-muted">Nenhum período ativo. Vá para o Dashboard para criar um.</div>
     }
 
-    const [{ expenses, totalExpense, projectedBalance }, cards] = await Promise.all([
+    const [{ expenses, totalExpense, projectedBalance }, cards, paymentSuggestions] = await Promise.all([
         getDashboardData(activeMonth),
         getCards(),
+        getPaymentSuggestions(),
     ])
 
     const todayIso = format(new Date(), "yyyy-MM-dd")
@@ -56,6 +58,7 @@ export default async function ExpensesPage(props: { searchParams: Promise<{ mont
                     data={expenses}
                     month={activeMonth}
                     cards={cards}
+                    paymentSuggestions={paymentSuggestions}
                     projectedBalance={projectedBalance}
                     todayIso={todayIso}
                 />

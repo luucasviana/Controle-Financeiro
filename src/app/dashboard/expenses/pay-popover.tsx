@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateMonthExpense } from "@/app/actions/finance"
+import type { PaymentSuggestion } from "@/app/actions/recurring-expenses"
 import type { Database } from "@/lib/database.types"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +23,10 @@ const PAYMENT_METHODS: Array<{ value: PayableMethod; label: string; icon: Lucide
     { value: "CREDIT_CARD", label: "Cartão de crédito", icon: CreditCard },
 ]
 
+function isPayableMethod(value: string): value is PayableMethod {
+    return value === "PIX" || value === "DEBIT" || value === "CASH" || value === "CREDIT_CARD"
+}
+
 /**
  * Círculo clicável que marca uma despesa como paga ou volta ela para prevista.
  *
@@ -31,14 +36,21 @@ const PAYMENT_METHODS: Array<{ value: PayableMethod; label: string; icon: Lucide
  *
  * Reutilizado pela tela de Movimentações e pela Visão geral: ambas devem se
  * comportar de forma idêntica ao marcar uma despesa como paga.
+ *
+ * `suggestion` vem da despesa recorrente que originou o lançamento (quando
+ * existe) e só serve para pré-marcar o popover ao abrir — o usuário pode
+ * trocar tudo antes de confirmar. Se o cartão sugerido não existir mais na
+ * lista `cards`, nenhum cartão é pré-selecionado.
  */
 export function PayPopover({
     expense,
     cards,
+    suggestion,
     className,
 }: {
     expense: ExpenseRow
     cards: CardOption[]
+    suggestion?: PaymentSuggestion
     className?: string
 }) {
     const [open, setOpen] = useState(false)
@@ -51,6 +63,22 @@ export function PayPopover({
     function resetForm() {
         setMethod("")
         setCardId("")
+    }
+
+    function applySuggestion() {
+        if (!suggestion || !isPayableMethod(suggestion.payment_method)) {
+            resetForm()
+            return
+        }
+
+        setMethod(suggestion.payment_method)
+
+        const suggestedCardStillExists =
+            suggestion.payment_method === "CREDIT_CARD" &&
+            !!suggestion.card_id &&
+            cards.some((card) => card.id === suggestion.card_id)
+
+        setCardId(suggestedCardStillExists ? suggestion.card_id! : "")
     }
 
     async function submit(payload: {
@@ -123,7 +151,11 @@ export function PayPopover({
             open={open}
             onOpenChange={(value) => {
                 setOpen(value)
-                if (!value) resetForm()
+                if (value) {
+                    applySuggestion()
+                } else {
+                    resetForm()
+                }
             }}
         >
             <PopoverTrigger asChild>

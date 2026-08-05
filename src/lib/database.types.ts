@@ -105,6 +105,8 @@ export interface Database {
                     is_active: boolean
                     is_archived: boolean
                     base_month_id: string | null
+                    payment_method: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
+                    card_id: string | null
                     created_at: string
                 }
                 Insert: {
@@ -118,6 +120,8 @@ export interface Database {
                     is_active?: boolean
                     is_archived?: boolean
                     base_month_id?: string | null
+                    payment_method?: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
+                    card_id?: string | null
                     created_at?: string
                 }
                 Update: {
@@ -131,6 +135,8 @@ export interface Database {
                     is_active?: boolean
                     is_archived?: boolean
                     base_month_id?: string | null
+                    payment_method?: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
+                    card_id?: string | null
                     created_at?: string
                 }
                 Relationships: []

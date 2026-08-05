@@ -6,6 +6,7 @@ import { Calculator } from "lucide-react"
 import { Tag } from "@/components/ui/tag"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import type { MonthData } from "@/app/actions/months"
+import type { PaymentSuggestion } from "@/app/actions/recurring-expenses"
 import { cn, formatCurrency } from "@/lib/utils"
 import { ExpenseActions } from "./expense-actions"
 import { PayPopover } from "./pay-popover"
@@ -31,6 +32,7 @@ export function ExpenseItem({
     expense,
     cardsMap,
     cards,
+    paymentSuggestions,
     month,
     projectedBalance,
     todayIso,
@@ -38,6 +40,7 @@ export function ExpenseItem({
     expense: Expense
     cardsMap: Record<string, string>
     cards: CardOption[]
+    paymentSuggestions: Record<string, PaymentSuggestion>
     month: MonthData
     projectedBalance: number
     todayIso: string
@@ -62,7 +65,15 @@ export function ExpenseItem({
                 isPaid && "opacity-55 hover:opacity-100"
             )}
         >
-            <PayPopover expense={expense} cards={cards} />
+            <PayPopover
+                expense={expense}
+                cards={cards}
+                suggestion={
+                    expense.recurring_expense_id
+                        ? paymentSuggestions[expense.recurring_expense_id]
+                        : undefined
+                }
+            />
 
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">

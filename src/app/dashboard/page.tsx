@@ -7,6 +7,7 @@ import { getDashboardData, getMetricsForMonths, getWaterfallData } from "@/app/a
 import { getIncomeSources } from "@/app/actions/income-sources"
 import { getIncomeEditorRows } from "@/app/actions/month-incomes"
 import { getProjection } from "@/app/actions/projection"
+import { getPaymentSuggestions } from "@/app/actions/recurring-expenses"
 import { Button } from "@/components/ui/button"
 import { StatStrip } from "@/components/ui/stat-strip"
 import { Surface } from "@/components/ui/surface"
@@ -45,16 +46,25 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
         )
     }
 
-    const [dashboardData, cards, balances, waterfallData, projection, incomeEditorRows, incomeSources] =
-        await Promise.all([
-            getDashboardData(activeMonth),
-            getCards(),
-            getCardBalancesByMonth(activeMonth.id),
-            getWaterfallData(activeMonth.id),
-            getProjection(activeMonth.id),
-            getIncomeEditorRows(activeMonth.id),
-            getIncomeSources(),
-        ])
+    const [
+        dashboardData,
+        cards,
+        balances,
+        waterfallData,
+        projection,
+        incomeEditorRows,
+        incomeSources,
+        paymentSuggestions,
+    ] = await Promise.all([
+        getDashboardData(activeMonth),
+        getCards(),
+        getCardBalancesByMonth(activeMonth.id),
+        getWaterfallData(activeMonth.id),
+        getProjection(activeMonth.id),
+        getIncomeEditorRows(activeMonth.id),
+        getIncomeSources(),
+        getPaymentSuggestions(),
+    ])
 
     const cardsList: CardRow[] = cards
     const balancesList: CardBalanceRow[] = balances
@@ -243,6 +253,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                         paid={paidExpenses}
                         cardsMap={cardsMap}
                         cards={cardsList}
+                        paymentSuggestions={paymentSuggestions}
                         projectedBalance={projectedBalance}
                         todayIso={todayIso}
                     />

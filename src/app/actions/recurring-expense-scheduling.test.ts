@@ -25,6 +25,8 @@ function plano(overrides: Partial<RecurringExpenseRow> = {}): RecurringExpenseRo
         is_active: true,
         is_archived: false,
         base_month_id: JAN.id,
+        payment_method: "NONE",
+        card_id: null,
         created_at: "2026-01-05T00:00:00Z",
         ...overrides,
     }

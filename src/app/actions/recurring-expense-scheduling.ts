@@ -15,6 +15,13 @@ export type RecurringExpenseRow = {
     is_active: boolean
     is_archived: boolean
     base_month_id: string | null
+    /**
+     * Sugestão de como o usuário costuma pagar essa recorrência. NÃO é gravada
+     * na despesa gerada (ver RecurringExpenseInsert abaixo) — só serve para
+     * pré-selecionar o método na hora de marcar o lançamento como pago.
+     */
+    payment_method: "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
+    card_id: string | null
     created_at: string
 }
 

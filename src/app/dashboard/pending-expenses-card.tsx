@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { deleteMonthExpense } from "@/app/actions/finance"
 import type { MonthData } from "@/app/actions/months"
+import type { PaymentSuggestion } from "@/app/actions/recurring-expenses"
 import type { Database } from "@/lib/database.types"
 import { cn, formatCurrency } from "@/lib/utils"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
@@ -115,6 +116,7 @@ function ExpenseRowItem({
     expense,
     cardsMap,
     cards,
+    paymentSuggestions,
     month,
     projectedBalance,
     todayIso,
@@ -122,6 +124,7 @@ function ExpenseRowItem({
     expense: ExpenseRow
     cardsMap: Record<string, string>
     cards: CardRow[]
+    paymentSuggestions: Record<string, PaymentSuggestion>
     month: MonthData
     projectedBalance: number
     todayIso: string
@@ -143,7 +146,15 @@ function ExpenseRowItem({
                 isPaid && "opacity-55 hover:opacity-100"
             )}
         >
-            <PayPopover expense={expense} cards={cards} />
+            <PayPopover
+                expense={expense}
+                cards={cards}
+                suggestion={
+                    expense.recurring_expense_id
+                        ? paymentSuggestions[expense.recurring_expense_id]
+                        : undefined
+                }
+            />
 
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -203,6 +214,7 @@ export function PendingExpensesCard({
     paid,
     cardsMap,
     cards,
+    paymentSuggestions,
     projectedBalance,
     todayIso,
 }: {
@@ -211,6 +223,7 @@ export function PendingExpensesCard({
     paid: ExpenseRow[]
     cardsMap: Record<string, string>
     cards: CardRow[]
+    paymentSuggestions: Record<string, PaymentSuggestion>
     projectedBalance: number
     todayIso: string
 }) {
@@ -219,7 +232,7 @@ export function PendingExpensesCard({
     const pendingTotal = pending.reduce((acc, expense) => acc + expense.amount, 0)
     const paidTotal = paid.reduce((acc, expense) => acc + expense.amount, 0)
 
-    const rowProps = { cardsMap, cards, month, projectedBalance, todayIso }
+    const rowProps = { cardsMap, cards, paymentSuggestions, month, projectedBalance, todayIso }
 
     return (
         <Surface className="flex flex-col">

@@ -30,12 +30,34 @@ export type RecurringExpenseSummary = RecurringExpenseRow & {
     occurrences: RecurringExpenseOccurrence[]
 }
 
+type RecurringPaymentMethod = "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
+
+const RECURRING_PAYMENT_METHODS: readonly RecurringPaymentMethod[] = [
+    "NONE",
+    "PIX",
+    "DEBIT",
+    "CASH",
+    "CREDIT_CARD",
+]
+
+/** Sugestão de método/cartão consultada na hora de pagar. Ver PaymentSuggestion. */
+export type PaymentSuggestion = { payment_method: string; card_id: string | null }
+
 type FormValues = {
     description: string
     amount: number
     due_day: number
     total_occurrences: number | null
     starts_in_current_month: boolean
+    payment_method: RecurringPaymentMethod
+    card_id: string | null
+}
+
+function parsePaymentMethod(formData: FormData): RecurringPaymentMethod {
+    const raw = String(formData.get("payment_method") ?? "").trim()
+    return (RECURRING_PAYMENT_METHODS as readonly string[]).includes(raw)
+        ? (raw as RecurringPaymentMethod)
+        : "NONE"
 }
 
 function parseForm(formData: FormData): FormValues {
@@ -64,12 +86,25 @@ function parseForm(formData: FormData): FormValues {
         }
     }
 
+    // Método/cartão são só uma sugestão consultada na hora de pagar (ver
+    // getPaymentSuggestions) — nunca gravados na despesa gerada pelo agendador.
+    // Por isso "cartão de crédito sem cartão escolhido" não é erro aqui: o
+    // usuário escolhe o cartão quando for de fato marcar como paga.
+    const paymentMethod = parsePaymentMethod(formData)
+    const rawCardId = formData.get("card_id")
+    const cardId =
+        paymentMethod === "CREDIT_CARD" && typeof rawCardId === "string" && rawCardId.trim() !== ""
+            ? rawCardId
+            : null
+
     return {
         description,
         amount,
         due_day: dueDay,
         total_occurrences: totalOccurrences,
         starts_in_current_month: formData.get("starts_in_current_month") === "true",
+        payment_method: paymentMethod,
+        card_id: cardId,
     }
 }
 
@@ -157,6 +192,31 @@ export async function getRecurringExpenses(): Promise<RecurringExpenseSummary[]>
             occurrences,
         }
     })
+}
+
+/**
+ * Consulta leve da sugestão de pagamento (método + cartão) de cada
+ * recorrência do usuário, indexada pelo id da recorrência.
+ *
+ * Diferente de getRecurringExpenses, não carrega ocorrências geradas nem
+ * meses — só as duas colunas necessárias para pré-selecionar o PayPopover.
+ */
+export async function getPaymentSuggestions(): Promise<Record<string, PaymentSuggestion>> {
+    const supabase = await createClient()
+    const userId = await getCurrentUserId()
+
+    const { data, error } = await supabase
+        .from("recurring_expenses")
+        .select("id, payment_method, card_id")
+        .eq("user_id", userId)
+
+    if (error) throw new Error(error.message)
+
+    const suggestions: Record<string, PaymentSuggestion> = {}
+    for (const row of data ?? []) {
+        suggestions[row.id] = { payment_method: row.payment_method, card_id: row.card_id }
+    }
+    return suggestions
 }
 
 export async function createRecurringExpense(formData: FormData) {
