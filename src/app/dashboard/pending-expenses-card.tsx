@@ -5,6 +5,7 @@ import { format, parseISO } from "date-fns"
 import {
     Calculator,
     Copy,
+    Layers,
     MoreHorizontal,
     Pencil,
     Plus,
@@ -54,6 +55,54 @@ function buildMeta(expense: ExpenseRow, cardsMap: Record<string, string>) {
     // não repetida aqui como texto.
 
     return parts.join(" · ")
+}
+
+const UNASSIGNED_MODALITY_LABEL = "Sem modalidade definida"
+
+type ModalityGroup = {
+    label: string
+    total: number
+    expenses: ExpenseRow[]
+}
+
+/**
+ * Agrupa as despesas previstas pelo mesmo rótulo já exibido no badge da
+ * linha (`getSuggestionBadgeLabel`), para que o grupo em que a despesa cai
+ * seja sempre o mesmo texto que o usuário lê nela — inclusive separando
+ * cartões diferentes, já que cada um é uma fatura distinta. Despesas sem
+ * modalidade sugerida caem num grupo residual.
+ *
+ * `pending` já chega ordenada por vencimento mais próximo (ver page.tsx);
+ * como cada despesa é empurrada no array do seu grupo na ordem em que é
+ * percorrida, essa ordem é preservada dentro de cada grupo.
+ *
+ * Grupos são ordenados por subtotal decrescente, com o grupo residual
+ * sempre por último — a soma dos subtotais é necessariamente igual à soma
+ * de `pending`, pois toda despesa é contada em exatamente um grupo.
+ */
+function groupPendingByModality(
+    pending: ExpenseRow[],
+    paymentSuggestions: Record<string, PaymentSuggestion>,
+    cardsMap: Record<string, string>
+): ModalityGroup[] {
+    const groups = new Map<string, ModalityGroup>()
+
+    for (const expense of pending) {
+        const label = getSuggestionBadgeLabel(expense, paymentSuggestions, cardsMap) || UNASSIGNED_MODALITY_LABEL
+        const group = groups.get(label)
+        if (group) {
+            group.total += expense.amount
+            group.expenses.push(expense)
+        } else {
+            groups.set(label, { label, total: expense.amount, expenses: [expense] })
+        }
+    }
+
+    return Array.from(groups.values()).sort((a, b) => {
+        if (a.label === UNASSIGNED_MODALITY_LABEL) return 1
+        if (b.label === UNASSIGNED_MODALITY_LABEL) return -1
+        return b.total - a.total
+    })
 }
 
 function RowActions({
@@ -242,11 +291,16 @@ export function PendingExpensesCard({
     todayIso: string
 }) {
     const [showPaid, setShowPaid] = useState(false)
+    const [groupByMethod, setGroupByMethod] = useState(false)
 
     const pendingTotal = pending.reduce((acc, expense) => acc + expense.amount, 0)
     const paidTotal = paid.reduce((acc, expense) => acc + expense.amount, 0)
 
     const rowProps = { cardsMap, cards, paymentSuggestions, month, projectedBalance, todayIso }
+
+    const modalityGroups = groupByMethod
+        ? groupPendingByModality(pending, paymentSuggestions, cardsMap)
+        : null
 
     return (
         <Surface className="flex flex-col">
@@ -258,6 +312,20 @@ export function PendingExpensesCard({
                     </div>
                 </div>
                 <div className="flex-1" />
+                <Button
+                    variant={groupByMethod ? "default" : "secondary"}
+                    size="icon-sm"
+                    aria-pressed={groupByMethod}
+                    aria-label={
+                        groupByMethod
+                            ? "Desagrupar lista por modalidade de pagamento"
+                            : "Agrupar lista por modalidade de pagamento"
+                    }
+                    title="Agrupar por modalidade de pagamento"
+                    onClick={() => setGroupByMethod((value) => !value)}
+                >
+                    <Layers className="h-4 w-4" />
+                </Button>
                 <ExpenseDialog
                     month={month}
                     projectedBalance={projectedBalance}
@@ -271,9 +339,26 @@ export function PendingExpensesCard({
             </div>
 
             <div className="flex flex-col gap-1 p-2">
-                {pending.map((expense) => (
-                    <ExpenseRowItem key={expense.id} expense={expense} {...rowProps} />
-                ))}
+                {modalityGroups
+                    ? modalityGroups.map((group, index) => (
+                          <div key={group.label} className="flex flex-col gap-1">
+                              <div className={cn("flex items-center gap-3 px-2 pb-1", index === 0 ? "pt-1" : "pt-3")}>
+                                  <span className="text-[11px] font-semibold uppercase tracking-wider text-app-faint">
+                                      {group.label}
+                                  </span>
+                                  <span className="h-px flex-1 bg-app-hairline" />
+                                  <span className="text-[11px] font-medium tabular-nums text-app-muted">
+                                      {formatCurrency(group.total)}
+                                  </span>
+                              </div>
+                              {group.expenses.map((expense) => (
+                                  <ExpenseRowItem key={expense.id} expense={expense} {...rowProps} />
+                              ))}
+                          </div>
+                      ))
+                    : pending.map((expense) => (
+                          <ExpenseRowItem key={expense.id} expense={expense} {...rowProps} />
+                      ))}
                 {pending.length === 0 && (
                     <p className="py-8 text-center text-app-muted">Nenhuma despesa prevista para este período.</p>
                 )}
