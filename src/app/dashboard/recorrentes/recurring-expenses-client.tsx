@@ -22,6 +22,7 @@ import {
     Archive,
     CalendarClock,
     CheckCircle2,
+    ChevronRight,
     Circle,
     Edit,
     MoreHorizontal,
@@ -49,6 +50,19 @@ export function RecurringExpensesClient({
     const [search, setSearch] = useState("")
     const [showArchived, setShowArchived] = useState(false)
     const [editingPlan, setEditingPlan] = useState<RecurringExpenseSummary | null>(null)
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+
+    function toggleExpanded(planId: string) {
+        setExpandedIds((prev) => {
+            const next = new Set(prev)
+            if (next.has(planId)) {
+                next.delete(planId)
+            } else {
+                next.add(planId)
+            }
+            return next
+        })
+    }
 
     useEffect(() => {
         getRecurringExpenses().then(setPlans)
@@ -196,6 +210,9 @@ export function RecurringExpensesClient({
 
             <div className="space-y-3">
                 {visiblePlans.map((plan) => {
+                    const isExpanded = expandedIds.has(plan.id)
+                    const detailsId = `recurring-details-${plan.id}`
+
                     return (
                         <Surface
                             key={plan.id}
@@ -207,17 +224,32 @@ export function RecurringExpensesClient({
                         >
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div className="min-w-0 flex-1 space-y-3">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h3 className="truncate text-[15px] font-semibold text-app-ink">
-                                            {plan.description}
-                                        </h3>
-                                        {plan.is_archived && <Tag tone="neutral">Arquivado</Tag>}
-                                        {!plan.is_archived && !plan.is_active && (
-                                            <Tag tone="warn">Pausado</Tag>
-                                        )}
-                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleExpanded(plan.id)}
+                                        aria-expanded={isExpanded}
+                                        aria-controls={detailsId}
+                                        aria-label={`${isExpanded ? "Recolher" : "Expandir"} detalhes de ${plan.description}`}
+                                        className="flex w-full min-w-0 items-center gap-2 text-left"
+                                    >
+                                        <ChevronRight
+                                            className={cn(
+                                                "h-4 w-4 shrink-0 text-app-muted transition-transform",
+                                                isExpanded && "rotate-90"
+                                            )}
+                                        />
+                                        <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                                            <h3 className="truncate text-[15px] font-semibold text-app-ink">
+                                                {plan.description}
+                                            </h3>
+                                            {plan.is_archived && <Tag tone="neutral">Arquivado</Tag>}
+                                            {!plan.is_archived && !plan.is_active && (
+                                                <Tag tone="warn">Pausado</Tag>
+                                            )}
+                                        </span>
+                                    </button>
 
-                                    <div className="flex flex-wrap items-center gap-3 text-sm text-app-muted">
+                                    <div className="flex flex-wrap items-center gap-3 pl-6 text-sm text-app-muted">
                                         <span className="font-medium text-app-ink">
                                             {formatCurrency(plan.amount)}
                                         </span>
@@ -240,69 +272,73 @@ export function RecurringExpensesClient({
                                                 </span>
                                             </>
                                         )}
+                                        <span>•</span>
+                                        <span>{plan.paidOccurrences} pago(s)</span>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-xs text-app-muted">
-                                            <span>Progresso</span>
-                                            <span>
-                                                {plan.total_occurrences === null
-                                                    ? `${plan.paidOccurrences} pago(s) • sem prazo`
-                                                    : `${plan.paidOccurrences} de ${plan.total_occurrences} pagos`}
-                                            </span>
-                                        </div>
+                                    {isExpanded && (
+                                        <div id={detailsId} className="space-y-2 pl-6">
+                                            <div className="flex items-center justify-between text-xs text-app-muted">
+                                                <span>Progresso</span>
+                                                <span>
+                                                    {plan.total_occurrences === null
+                                                        ? `${plan.paidOccurrences} pago(s) • sem prazo`
+                                                        : `${plan.paidOccurrences} de ${plan.total_occurrences} pagos`}
+                                                </span>
+                                            </div>
 
-                                        {plan.progressPercent !== null && (
-                                            <Progress value={plan.progressPercent} />
-                                        )}
-
-                                        <div className="flex flex-wrap items-center gap-3 text-xs text-app-muted">
-                                            {plan.remainingOccurrences !== null && (
-                                                <Tag tone="neutral">
-                                                    Restam {plan.remainingOccurrences}
-                                                </Tag>
+                                            {plan.progressPercent !== null && (
+                                                <Progress value={plan.progressPercent} />
                                             )}
-                                            <span>Pago {formatCurrency(plan.paidAmount)}</span>
-                                            {plan.totalAmount !== null && (
-                                                <span>Total {formatCurrency(plan.totalAmount)}</span>
-                                            )}
-                                        </div>
 
-                                        {plan.occurrences.length > 0 && (
-                                            <ul className="mt-2 divide-y divide-app-border rounded-control border border-app-border bg-app-surface">
-                                                {plan.occurrences.map((occurrence) => (
-                                                    <li
-                                                        key={occurrence.id}
-                                                        className="flex items-center justify-between gap-2 px-3 py-1.5 text-xs"
-                                                    >
-                                                        <span className="flex min-w-0 items-center gap-2">
-                                                            {occurrence.status === "PAID" ? (
-                                                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-app-pos" />
-                                                            ) : (
-                                                                <Circle className="h-3.5 w-3.5 shrink-0 text-app-faint" />
-                                                            )}
-                                                            <span className="truncate text-app-ink">
-                                                                {occurrence.number
-                                                                    ? `${occurrence.number}. `
-                                                                    : ""}
-                                                                {occurrence.monthName}
-                                                            </span>
-                                                        </span>
-                                                        <span
-                                                            className={cn(
-                                                                "shrink-0",
-                                                                occurrence.status === "PAID"
-                                                                    ? "text-app-faint line-through"
-                                                                    : "font-medium text-app-ink"
-                                                            )}
+                                            <div className="flex flex-wrap items-center gap-3 text-xs text-app-muted">
+                                                {plan.remainingOccurrences !== null && (
+                                                    <Tag tone="neutral">
+                                                        Restam {plan.remainingOccurrences}
+                                                    </Tag>
+                                                )}
+                                                <span>Pago {formatCurrency(plan.paidAmount)}</span>
+                                                {plan.totalAmount !== null && (
+                                                    <span>Total {formatCurrency(plan.totalAmount)}</span>
+                                                )}
+                                            </div>
+
+                                            {plan.occurrences.length > 0 && (
+                                                <ul className="mt-2 divide-y divide-app-border rounded-control border border-app-border bg-app-surface">
+                                                    {plan.occurrences.map((occurrence) => (
+                                                        <li
+                                                            key={occurrence.id}
+                                                            className="flex items-center justify-between gap-2 px-3 py-1.5 text-xs"
                                                         >
-                                                            {formatCurrency(occurrence.amount)}
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </div>
+                                                            <span className="flex min-w-0 items-center gap-2">
+                                                                {occurrence.status === "PAID" ? (
+                                                                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-app-pos" />
+                                                                ) : (
+                                                                    <Circle className="h-3.5 w-3.5 shrink-0 text-app-faint" />
+                                                                )}
+                                                                <span className="truncate text-app-ink">
+                                                                    {occurrence.number
+                                                                        ? `${occurrence.number}. `
+                                                                        : ""}
+                                                                    {occurrence.monthName}
+                                                                </span>
+                                                            </span>
+                                                            <span
+                                                                className={cn(
+                                                                    "shrink-0",
+                                                                    occurrence.status === "PAID"
+                                                                        ? "text-app-faint line-through"
+                                                                        : "font-medium text-app-ink"
+                                                                )}
+                                                            >
+                                                                {formatCurrency(occurrence.amount)}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-2 self-start lg:self-center">
