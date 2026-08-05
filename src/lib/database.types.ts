@@ -37,6 +37,7 @@ export interface Database {
                     status?: 'OPEN' | 'CLOSED'
                     created_at?: string
                 }
+                Relationships: []
             }
             income_sources: {
                 Row: {
@@ -63,6 +64,7 @@ export interface Database {
                     is_hidden?: boolean
                     created_at?: string
                 }
+                Relationships: []
             }
             month_incomes: {
                 Row: {
@@ -89,6 +91,7 @@ export interface Database {
                     amount?: number
                     created_at?: string
                 }
+                Relationships: []
             }
             recurring_expense_templates: {
                 Row: {
@@ -118,6 +121,7 @@ export interface Database {
                     is_active?: boolean
                     created_at?: string
                 }
+                Relationships: []
             }
             expense_installment_plans: {
                 Row: {
@@ -159,6 +163,7 @@ export interface Database {
                     base_month_id?: string | null
                     created_at?: string
                 }
+                Relationships: []
             }
             cards: {
                 Row: {
@@ -182,6 +187,7 @@ export interface Database {
                     limit_amount?: number
                     created_at?: string
                 }
+                Relationships: []
             }
             month_expenses: {
                 Row: {
@@ -238,6 +244,7 @@ export interface Database {
                     is_excluded?: boolean
                     created_at?: string
                 }
+                Relationships: []
             }
             card_transactions: {
                 Row: {
@@ -270,6 +277,7 @@ export interface Database {
                     amount?: number
                     created_at?: string
                 }
+                Relationships: []
             }
         }
         Views: {
