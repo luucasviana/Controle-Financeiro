@@ -8,7 +8,7 @@ import { ExpenseDialog } from "./expense-dialog"
 import { deleteMonthExpense } from "@/app/actions/finance"
 import { toast } from "sonner"
 import type { MonthData } from "@/app/actions/months"
-import type { Expense } from "./columns"
+import type { Expense } from "./types"
 
 export function ExpenseActions({
     expense,

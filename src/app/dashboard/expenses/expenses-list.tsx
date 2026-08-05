@@ -9,7 +9,7 @@ import type { MonthData } from "@/app/actions/months"
 import { formatCurrency } from "@/lib/utils"
 import { ExpenseDialog } from "./expense-dialog"
 import { ExpenseItem } from "./expense-item"
-import type { Expense } from "./columns"
+import type { Expense } from "./types"
 
 type CardOption = { id: string; name: string }
 

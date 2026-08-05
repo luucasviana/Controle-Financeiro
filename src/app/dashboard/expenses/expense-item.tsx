@@ -10,7 +10,7 @@ import { cn, formatCurrency } from "@/lib/utils"
 import { ExpenseActions } from "./expense-actions"
 import { PayPopover } from "./pay-popover"
 import { PAYMENT_METHOD_LABELS, getOccurrenceLabel, isExpenseOverdue } from "./expense-meta"
-import type { Expense } from "./columns"
+import type { Expense } from "./types"
 
 type CardOption = { id: string; name: string }
 

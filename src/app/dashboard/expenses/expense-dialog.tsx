@@ -24,7 +24,7 @@ import { getCards } from "@/app/actions/cards"
 import type { MonthData } from "@/app/actions/months"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import { cn, formatCurrency } from "@/lib/utils"
-import type { Expense } from "./columns"
+import type { Expense } from "./types"
 
 type CardOption = { id: string; name: string }
 type PaymentMethod = "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"

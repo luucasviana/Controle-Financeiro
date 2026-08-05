@@ -130,67 +130,6 @@ const getMonthFinanceSnapshot = cache(async (userId: string, monthId: string): P
     }
 })
 
-async function generateTemplatesForMonth(month: MonthData, userId: string) {
-    const supabase = await createClient() as any
-
-    const [{ data: templates }, { data: existingExpenses }] = await Promise.all([
-        supabase
-            .from("recurring_expense_templates")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("is_active", true),
-        supabase
-            .from("month_expenses")
-            .select("template_id")
-            .eq("user_id", userId)
-            .eq("month_id", month.id)
-            .not("template_id", "is", null),
-    ])
-
-    if (!templates || templates.length === 0) {
-        return 0
-    }
-
-    const existingTemplateIds = new Set((existingExpenses || []).map((expense: { template_id: string | null }) => expense.template_id))
-    const newExpenses = []
-
-    for (const template of templates) {
-        if (existingTemplateIds.has(template.id)) {
-            continue
-        }
-
-        const start = new Date(`${month.start_date}T00:00:00`)
-        const dueYear = start.getFullYear()
-        const dueMonth = start.getMonth() + 1
-        const daysInMonth = new Date(dueYear, dueMonth, 0).getDate()
-        const adjustedDay = Math.min(template.day_of_month, daysInMonth)
-        const dueDate = `${dueYear}-${String(dueMonth).padStart(2, "0")}-${String(adjustedDay).padStart(2, "0")}`
-
-        newExpenses.push({
-            user_id: userId,
-            month_id: month.id,
-            due_date: dueDate,
-            description: template.description,
-            amount: template.amount,
-            status: "PLANNED",
-            payment_method: "NONE",
-            template_id: template.id,
-        })
-    }
-
-    if (newExpenses.length === 0) {
-        return 0
-    }
-
-    const { error } = await supabase.from("month_expenses").insert(newExpenses)
-
-    if (error) {
-        throw new Error(error.message)
-    }
-
-    return newExpenses.length
-}
-
 export async function syncRecurringExpensesForUser(userId: string) {
     return measureServerTiming("sync-recurring-expenses", async () => {
         const supabase = await createClient()

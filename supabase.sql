@@ -1,26 +1,13 @@
 -- ============================================================
--- Schema-alvo (estado-alvo) do redesign de despesas recorrentes.
+-- Schema-alvo do redesign de despesas recorrentes.
 --
--- DIVERGÊNCIA INTENCIONAL: este arquivo já assume que os quatro
--- comandos destrutivos de `migration_unify_recurring_expenses.sql`
--- (drop da tabela `recurring_expense_templates`, da coluna
--- `template_id` e dos índices de template) foram aprovados e
--- executados. No banco real, esses comandos ainda estão comentados
--- pendente de aval — ou seja, hoje o banco real ainda tem
--- `recurring_expense_templates` e `month_expenses.template_id`, que
--- não aparecem aqui. Este arquivo serve como referência para
--- instalações novas (fresh install) e como destino final da migração,
--- não como retrato fiel do banco de produção atual.
---
--- ⚠️ NÃO rode este arquivo inteiro contra um banco já migrado enquanto
--- os comandos destrutivos pendentes (bloco "PENDENTE DE AVAL" no fim
--- de `migration_unify_recurring_expenses.sql`) não forem aprovados e
--- executados. O `create or replace function public.clean_user_data()`
--- daqui embaixo substituiria silenciosamente a versão criada pela
--- migração — que ainda limpa `recurring_expense_templates` — por esta
--- versão-alvo, que não a limpa. Enquanto a tabela ainda existir de
--- fato em produção, isso faria o reset de dados deixar linhas órfãs
--- nela.
+-- Retrato fiel do banco de produção atual. Os comandos destrutivos
+-- de `migration_unify_recurring_expenses.sql` e a limpeza aprovada
+-- em `migration_limpeza_aprovada.sql` já foram executados: as sobras
+-- do modelo antigo de despesas fixas e do valor fixo de receita não
+-- existem mais no banco nem aqui. Este arquivo serve como referência
+-- tanto para instalações novas (fresh install) quanto como destino
+-- final da migração.
 -- ============================================================
 
 create extension if not exists "uuid-ossp";
