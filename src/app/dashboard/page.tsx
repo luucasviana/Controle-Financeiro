@@ -257,7 +257,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                 Planejar
                             </Link>
                         </div>
-                        <p className="mb-4 text-app-muted">Projeção com receitas e gastos recorrentes</p>
+                        <p className="mb-4 text-app-muted">Lançamentos e recorrências, sem faturas de cartão</p>
 
                         <div className="flex flex-col gap-3">
                             {projectionPreview.map((item, index) => {
