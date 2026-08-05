@@ -29,14 +29,23 @@ create table if not exists public.months (
     created_at timestamptz not null default now()
 );
 
-create table if not exists public.recurring_incomes (
+create table if not exists public.income_sources (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid not null references auth.users(id) on delete cascade,
     description text not null,
-    amount numeric(12,2) not null default 0,
     is_active boolean not null default true,
     is_hidden boolean not null default false,
     created_at timestamptz not null default now()
+);
+
+create table if not exists public.month_incomes (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    month_id uuid not null references public.months(id) on delete cascade,
+    source_id uuid not null references public.income_sources(id) on delete cascade,
+    amount numeric(12,2) not null default 0,
+    created_at timestamptz not null default now(),
+    unique (user_id, month_id, source_id)
 );
 
 create table if not exists public.recurring_expense_templates (
@@ -114,7 +123,9 @@ create table if not exists public.card_transactions (
 
 create index if not exists idx_months_user_status_start_date on public.months (user_id, status, start_date desc);
 create index if not exists idx_months_user_start_date on public.months (user_id, start_date desc);
-create index if not exists idx_recurring_incomes_user_active_hidden on public.recurring_incomes (user_id, is_active, is_hidden);
+create index if not exists idx_income_sources_user_active_hidden on public.income_sources (user_id, is_active, is_hidden);
+create index if not exists idx_month_incomes_user_month on public.month_incomes (user_id, month_id);
+create index if not exists idx_month_incomes_source on public.month_incomes (source_id);
 create index if not exists idx_recurring_expense_templates_user on public.recurring_expense_templates (user_id);
 create index if not exists idx_expense_installment_plans_user_active_archived on public.expense_installment_plans (user_id, is_active, is_archived);
 create index if not exists idx_cards_user on public.cards (user_id);
@@ -135,7 +146,8 @@ create index if not exists idx_card_transactions_user_card on public.card_transa
 create index if not exists idx_card_transactions_occurred_at on public.card_transactions (occurred_at);
 
 alter table public.months enable row level security;
-alter table public.recurring_incomes enable row level security;
+alter table public.income_sources enable row level security;
+alter table public.month_incomes enable row level security;
 alter table public.recurring_expense_templates enable row level security;
 alter table public.expense_installment_plans enable row level security;
 alter table public.cards enable row level security;
@@ -150,9 +162,16 @@ create policy "Users can manage their own months"
     using (auth.uid() = user_id)
     with check (auth.uid() = user_id);
 
-drop policy if exists "Users can manage their own recurring incomes" on public.recurring_incomes;
+drop policy if exists "Users can manage their own recurring incomes" on public.income_sources;
 create policy "Users can manage their own recurring incomes"
-    on public.recurring_incomes
+    on public.income_sources
+    for all
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+drop policy if exists "Users can manage their own month incomes" on public.month_incomes;
+create policy "Users can manage their own month incomes"
+    on public.month_incomes
     for all
     using (auth.uid() = user_id)
     with check (auth.uid() = user_id);
@@ -218,7 +237,8 @@ begin
     delete from public.month_expenses where user_id = v_user_id;
     delete from public.recurring_expense_templates where user_id = v_user_id;
     delete from public.expense_installment_plans where user_id = v_user_id;
-    delete from public.recurring_incomes where user_id = v_user_id;
+    delete from public.month_incomes where user_id = v_user_id;
+    delete from public.income_sources where user_id = v_user_id;
     delete from public.cards where user_id = v_user_id;
     delete from public.months where user_id = v_user_id;
 end;

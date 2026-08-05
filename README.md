@@ -22,9 +22,10 @@ Aplicativo web para planejamento e controle financeiro pessoal, com interface em
 2. Em `Project Settings > API`, copie:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. No `SQL Editor`, execute o conteúdo de [supabase.sql](/C:/Users/lucas/Controle%20Financeiro/supabase.sql).
+3. No `SQL Editor`, execute o conteúdo de [supabase.sql](supabase.sql).
    Esse arquivo já representa o schema atual esperado pela aplicação, incluindo:
    - tabela `months`
+   - `income_sources` e `month_incomes` (receita por fonte, por mês)
    - relacionamento `month_expenses.month_id`
    - `card_month_balances`
    - campos `is_hidden` e `is_excluded`
@@ -58,8 +59,8 @@ Depois de criar um usuário no Supabase Auth, você pode inserir dados de teste:
 insert into public.months (user_id, name, start_date, end_date, status)
 values ('<SEU_USER_ID>', 'Maio/2026', '2026-05-01', '2026-05-31', 'OPEN');
 
-insert into public.recurring_incomes (user_id, description, amount, is_active)
-values ('<SEU_USER_ID>', 'Salário', 5000.00, true);
+insert into public.income_sources (user_id, description, is_active)
+values ('<SEU_USER_ID>', 'Salário', true);
 
 insert into public.recurring_expense_templates (user_id, description, amount, day_of_month, is_active)
 values ('<SEU_USER_ID>', 'Aluguel', 1500.00, 5, true);
@@ -92,6 +93,7 @@ values ('<SEU_USER_ID>', 'Nubank', 3000.00);
 - Os arquivos `migration.sql`, `migration_hidden_incomes.sql` e `migration_excluded_expenses.sql` são históricos e úteis só para bases antigas.
 - Para uma instalação nova, use apenas `supabase.sql`.
 - Se a sua base antiga ainda usa a coluna `month` em vez de `month_id`, ou não possui a tabela `months`, alinhe o banco antes de usar a versão atual do app.
+- `migration_income_per_month.sql` move o valor da receita para a tabela `month_incomes` (um valor por fonte por mês) e faz o backfill do histórico com os valores vigentes na data da migração.
 
 ## Reset de dados
 Na tela de configurações existe uma ação para limpar todos os dados do usuário autenticado sem apagar a conta no Auth. Ela usa a função RPC `clean_user_data`.

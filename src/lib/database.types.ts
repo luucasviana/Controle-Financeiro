@@ -38,12 +38,11 @@ export interface Database {
                     created_at?: string
                 }
             }
-            recurring_incomes: {
+            income_sources: {
                 Row: {
                     id: string
                     user_id: string
                     description: string
-                    amount: number
                     is_active: boolean
                     is_hidden: boolean
                     created_at: string
@@ -52,7 +51,6 @@ export interface Database {
                     id?: string
                     user_id: string
                     description: string
-                    amount: number
                     is_active?: boolean
                     is_hidden?: boolean
                     created_at?: string
@@ -61,9 +59,34 @@ export interface Database {
                     id?: string
                     user_id?: string
                     description?: string
-                    amount?: number
                     is_active?: boolean
                     is_hidden?: boolean
+                    created_at?: string
+                }
+            }
+            month_incomes: {
+                Row: {
+                    id: string
+                    user_id: string
+                    month_id: string
+                    source_id: string
+                    amount: number
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    month_id: string
+                    source_id: string
+                    amount?: number
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    month_id?: string
+                    source_id?: string
+                    amount?: number
                     created_at?: string
                 }
             }
