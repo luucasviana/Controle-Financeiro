@@ -6,6 +6,7 @@ import { Edit, MoreHorizontal, Power, Trash2, Wallet } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { InfoPopover } from "@/components/ui/info-popover"
+import { SensitiveValue } from "@/components/ui/sensitive-value"
 import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import {
@@ -138,7 +139,7 @@ export function IncomeSourcesCard({
                                 </div>
                             </div>
                             <span className="shrink-0 font-medium tabular-nums text-app-ink">
-                                {formatCurrency(row.amount)}
+                                <SensitiveValue>{formatCurrency(row.amount)}</SensitiveValue>
                             </span>
 
                             <DropdownMenu>
@@ -175,7 +176,9 @@ export function IncomeSourcesCard({
 
             <div className="mt-4 flex items-baseline justify-between border-t border-app-hairline pt-3">
                 <span className="text-app-muted">Total do período</span>
-                <span className="text-[15px] font-medium text-app-ink">{formatCurrency(total)}</span>
+                <span className="text-[15px] font-medium text-app-ink">
+                    <SensitiveValue>{formatCurrency(total)}</SensitiveValue>
+                </span>
             </div>
 
             {editingSource && (

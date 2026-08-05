@@ -8,12 +8,13 @@ import { PeriodSwitcher } from "./period-switcher"
 import { AccountMenu } from "./account-menu"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import { useMonth } from "@/components/providers/month-provider"
+import { usePrivacy } from "@/components/providers/privacy-provider"
 import { HiddenModeShortcut } from "@/components/hidden-mode-shortcut"
 import { Tag } from "@/components/ui/tag"
 import { LastroMark, LastroSelo } from "@/components/ui/lastro-mark"
 import { isMonthScopedPath } from "@/lib/month-scoped-routes"
 import type { MonthData } from "@/app/actions/months"
-import { EyeOff } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 
 const DEFAULT_LASTRO_LEVEL = 0.62
 
@@ -26,6 +27,7 @@ export function Header({
 }) {
     const pathname = usePathname()
     const { hiddenModeEnabled } = useHiddenMode()
+    const { valuesHidden, toggleValuesHidden } = usePrivacy()
     const { monthId } = useMonth()
     const showPeriod = isMonthScopedPath(pathname)
     const level = (monthId && levelByMonth[monthId] !== undefined)
@@ -54,6 +56,15 @@ export function Header({
                         Modo oculto
                     </Tag>
                 )}
+                <button
+                    type="button"
+                    aria-pressed={!valuesHidden}
+                    aria-label={valuesHidden ? "Mostrar valores" : "Ocultar valores"}
+                    onClick={toggleValuesHidden}
+                    className="flex h-[34px] w-[34px] items-center justify-center rounded-control border border-app-border bg-app-surface text-app-muted transition-colors hover:border-app-muted hover:text-app-ink"
+                >
+                    {valuesHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
                 {showPeriod && <PeriodSwitcher months={months} />}
                 <AccountMenu />
             </div>

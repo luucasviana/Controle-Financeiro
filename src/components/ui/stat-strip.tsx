@@ -12,7 +12,7 @@ export function StatStrip({
     items,
     className,
 }: {
-    items: Array<{ label: string; value: string; tone?: StatTone }>
+    items: Array<{ label: string; value: React.ReactNode; tone?: StatTone }>
     className?: string
 }) {
     return (

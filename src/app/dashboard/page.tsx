@@ -9,6 +9,7 @@ import { getProjection } from "@/app/actions/projection"
 import { getPaymentSuggestions } from "@/app/actions/recurring-expenses"
 import { Button } from "@/components/ui/button"
 import { InfoPopover } from "@/components/ui/info-popover"
+import { SensitiveValue } from "@/components/ui/sensitive-value"
 import { StatStrip } from "@/components/ui/stat-strip"
 import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
@@ -199,7 +200,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                 isBalancePositive ? "text-app-ink" : "text-app-accent"
                             )}
                         >
-                            {formatCurrency(projectedBalance)}
+                            <SensitiveValue>{formatCurrency(projectedBalance)}</SensitiveValue>
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-app-muted">
                             <span>Depois de pagar tudo previsto para {activeMonth.name}</span>
@@ -209,7 +210,10 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                         <StatStrip
                             className="mt-6"
                             items={[
-                                { label: "Receita", value: formatCurrency(incomeVisible) },
+                                {
+                                    label: "Receita",
+                                    value: <SensitiveValue>{formatCurrency(incomeVisible)}</SensitiveValue>,
+                                },
                                 { label: "Já pago", value: formatCurrency(jaPago) },
                                 { label: "Falta pagar", value: formatCurrency(aPagar) },
                             ]}
@@ -373,7 +377,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                                     positive ? "text-app-ink" : "text-app-warn"
                                                 )}
                                             >
-                                                {formatCurrency(item.balance)}
+                                                <SensitiveValue>{formatCurrency(item.balance)}</SensitiveValue>
                                             </span>
                                         </div>
                                         <div className="h-1 overflow-hidden rounded-control bg-app-hairline">
@@ -404,7 +408,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                         projectionAccumulated >= 0 ? "text-app-ink" : "text-app-warn"
                                     )}
                                 >
-                                    {formatCurrency(projectionAccumulated)}
+                                    <SensitiveValue>{formatCurrency(projectionAccumulated)}</SensitiveValue>
                                 </span>
                             </div>
                         )}
