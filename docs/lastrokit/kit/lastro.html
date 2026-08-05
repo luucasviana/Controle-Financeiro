@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lastro — manual da marca</title>
+<style>
+  :root{--gr:#1F2937;--gr2:#4B5563;--gr3:#6B7280;--es:#10B981;--es2:#34D399;--es3:#059669;
+    --emerso:#B6C2CF;--nt:#E5E7EB;--bg:#F8FAFC;--w:#fff;--esc:#0F172A}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--gr);line-height:1.6;
+    font-family:Poppins,Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px 90px}
+  .marca{display:block;width:100%;height:auto}
+
+  /* ---- topo ---- */
+  .hero{padding:56px 0 8px}
+  .hero .palco{background:var(--w);border:1px solid var(--nt);border-radius:22px;
+    padding:clamp(28px,6vw,64px) clamp(24px,6vw,72px);margin-bottom:26px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--es3);
+    font-weight:700;margin:0 0 10px}
+  .hero p.sub{margin:0;color:var(--gr2);font-size:clamp(15px,2.4vw,17.5px);max-width:62ch}
+
+  /* ---- indice ---- */
+  .indice{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 0}
+  .indice a{font-size:13px;text-decoration:none;color:var(--gr2);background:var(--w);
+    border:1px solid var(--nt);border-radius:999px;padding:6px 14px}
+  .indice a:hover{border-color:var(--es);color:var(--es3)}
+
+  /* ---- secoes ---- */
+  section{padding-top:64px}
+  h2{font-size:clamp(21px,3.6vw,27px);letter-spacing:-.02em;margin:0 0 6px}
+  .lede{margin:0 0 22px;color:var(--gr2);font-size:15.5px;max-width:66ch}
+  h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gr3);
+    font-weight:700;margin:34px 0 12px}
+  .painel{background:var(--w);border:1px solid var(--nt);border-radius:18px;padding:clamp(20px,4vw,30px)}
+
+  /* ---- o nome ---- */
+  .verbete{display:grid;gap:0}
+  .verbete .linha{display:grid;grid-template-columns:132px 1fr;gap:20px;padding:16px 0;
+    border-top:1px solid var(--nt)}
+  .verbete .linha:first-child{border-top:0;padding-top:0}
+  .verbete .rot{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--es3);
+    font-weight:700;padding-top:3px}
+  .verbete p{margin:0;font-size:15px;color:var(--gr2)}
+  .verbete p b{color:var(--gr)}
+  .porques{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));margin-top:16px}
+  .porque{background:var(--w);border:1px solid var(--nt);border-radius:16px;padding:22px 22px 24px}
+  .porque .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+    border-radius:8px;background:var(--gr);color:#fff;font-size:13px;font-weight:700;margin-bottom:12px}
+  .porque h4{margin:0 0 6px;font-size:16px;letter-spacing:-.01em}
+  .porque p{margin:0;font-size:14.5px;color:var(--gr2)}
+  .ressalva{border-left:4px solid #F59E0B;background:var(--w);border-radius:14px;
+    padding:20px 22px;margin-top:16px;font-size:14.5px;color:var(--gr2)}
+  .ressalva b{color:var(--gr)}
+
+  /* ---- anatomia ---- */
+  .anats{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .anat{margin:0;background:var(--w);border:1px solid var(--nt);border-radius:16px;overflow:hidden}
+  .anat .art{background:var(--bg);padding:24px 22px}
+  .anat figcaption{padding:18px 22px 22px}
+  .anat h4{margin:0 0 6px;font-size:15.5px}
+  .anat p{margin:0;font-size:14px;color:var(--gr2)}
+
+  /* ---- dado vivo ---- */
+  .demo{display:grid;gap:26px;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:center}
+  .demo .palco{background:var(--bg);border-radius:14px;padding:26px 22px}
+  .controle label{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--gr3);font-weight:700;margin-bottom:10px}
+  input[type=range]{width:100%;accent-color:var(--es);height:26px}
+  .leitura{display:flex;justify-content:space-between;gap:12px;margin-top:14px;
+    padding-top:14px;border-top:1px solid var(--nt);font-size:13px;color:var(--gr2)}
+  .leitura b{display:block;font-size:19px;color:var(--gr);letter-spacing:-.02em;line-height:1.3}
+  .leitura .dir{text-align:right}
+  #pct{color:var(--es3)}
+  .niveis{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-top:20px}
+  .nivel{margin:0}
+  .nivel .art{background:var(--bg);border-radius:12px;padding:16px 14px}
+  .nivel figcaption{margin-top:8px;font-size:12.5px;color:var(--gr2);text-align:center}
+
+  /* ---- construcao ---- */
+  .regras{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .regra{background:var(--w);border:1px solid var(--nt);border-radius:14px;padding:18px 20px}
+  .regra span{display:block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--gr3);font-weight:700;margin-bottom:6px}
+  .regra b{font-size:17px;letter-spacing:-.01em}
+  .regra p{margin:4px 0 0;font-size:13.5px;color:var(--gr2)}
+
+  /* ---- cores ---- */
+  .paleta{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .cor{border:1px solid var(--nt);border-radius:14px;overflow:hidden;background:var(--w)}
+  .cor .chip{height:72px}
+  .cor .info{padding:12px 14px;font-size:12px}
+  .cor .info strong{display:block;font-size:13px}
+  .cor .info code{color:var(--gr2);font-size:12px}
+  .cor .info em{display:block;font-style:normal;color:var(--gr3);font-size:11.5px;margin-top:3px}
+
+  /* ---- versoes / aplicacao ---- */
+  .versoes{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .versao{margin:0;border:1px solid var(--nt);border-radius:16px;overflow:hidden;background:var(--w)}
+  .versao .art{padding:30px 26px;display:flex;align-items:center;justify-content:center;min-height:132px}
+  .versao .art.esc{background:var(--esc)}
+  .versao .art.mono{background:#EEF2F6;color:var(--gr)}
+  .versao figcaption{padding:14px 20px 18px;font-size:13px;color:var(--gr2);border-top:1px solid var(--nt)}
+  .versao figcaption b{display:block;color:var(--gr);font-size:14.5px;margin-bottom:2px}
+  .barra{background:var(--w);border:1px solid var(--nt);border-radius:14px;padding:14px 18px;
+    display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:12px}
+  .barra.escura{background:var(--esc);border-color:#1E293B}
+  .barra .logo{width:148px;flex:0 0 auto}
+  .barra nav{display:flex;gap:16px;font-size:14px;color:var(--gr2);flex-wrap:wrap}
+  .barra nav .at{color:var(--gr);font-weight:600}
+  .barra.escura nav{color:#94A3B8} .barra.escura nav .at{color:#F8FAFC}
+  .selos{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-end;justify-content:center}
+  .selos .item{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .selos span{font-size:11.5px;color:var(--gr2)}
+
+  /* ---- nao faca ---- */
+  .naos{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .nao{background:var(--w);border:1px solid var(--nt);border-radius:14px;padding:18px 20px;
+    font-size:14px;color:var(--gr2);border-left:4px solid #EF4444}
+  .nao b{display:block;color:var(--gr);font-size:14.5px;margin-bottom:3px}
+
+  /* ---- codigo ---- */
+  pre{background:var(--esc);color:#E2E8F0;border-radius:14px;padding:20px 22px;overflow-x:auto;
+    font-size:13px;line-height:1.7;margin:0 0 14px}
+  pre code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  .tok{color:#7DD3FC} .str{color:#6EE7B7} .com{color:#64748B}
+
+  @media (max-width:760px){
+    .demo{grid-template-columns:1fr}
+    .verbete .linha{grid-template-columns:1fr;gap:4px}
+    .barra .logo{width:130px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="palco"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="cimaa_13"><rect x="-600" width="2400" y="-600" height="638.0"/></clipPath>
+    <clipPath id="baixoa_13"><rect x="-600" width="2400" y="38.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#cimaa_13)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixoa_13)"/>
+  <path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+    <p class="eyebrow">Manual da marca</p>
+    <p class="sub">Um sistema de controle de despesas domésticas não existe para você gastar
+    menos. Existe para você não virar. <b>Lastro</b> é a marca dessa ideia — e a única parte
+    dela que muda é o quanto da palavra já está submerso.</p>
+    <nav class="indice">
+      <a href="#nome">O nome</a>
+      <a href="#marca">A marca</a>
+      <a href="#vivo">Dado vivo</a>
+      <a href="#construcao">Construção</a>
+      <a href="#cores">Cores</a>
+      <a href="#versoes">Versões</a>
+      <a href="#aplicacao">Aplicação</a>
+      <a href="#naofaca">Não faça</a>
+      <a href="#codigo">Implementação</a>
+    </nav>
+  </header>
+
+  <!-- ============================================================ O NOME -->
+  <section id="nome">
+    <h2>O nome</h2>
+    <p class="lede">Antes da marca, a palavra. <b>Lastro</b> não é uma invenção nem um
+    anglicismo: é uma palavra portuguesa velha, concreta, com três acepções que por acaso
+    descrevem exatamente o que o seu sistema faz.</p>
+
+    <div class="painel verbete">
+      <div class="linha">
+        <div class="rot">Origem</div>
+        <p>Do neerlandês <b>last</b> (“carga”) ou do inglês <b>ballast</b> (“lastro”). Chegou
+        ao português pelo vocabulário de navegação, junto com metade dos termos náuticos que
+        a gente usa até hoje sem perceber.</p>
+      </div>
+      <div class="linha">
+        <div class="rot">Náutica</div>
+        <p>Peso que se coloca no porão de uma embarcação <b>para lhe aumentar a
+        estabilidade</b>. Repare na definição: o lastro não serve para afundar o barco. Serve
+        para ele não emborcar quando bate vento de través. É peso a favor.</p>
+      </div>
+      <div class="linha">
+        <div class="rot">Economia</div>
+        <p>A garantia que <b>respalda o valor de uma moeda</b>. O dólar teve lastro em ouro
+        até os anos 1970; o real colonial teve lastro em prata. Hoje as moedas são fiduciárias
+        e o lastro virou confiança — o que, para um sistema de finanças pessoais, é uma
+        coincidência boa demais para ignorar.</p>
+      </div>
+      <div class="linha">
+        <div class="rot">Figurado</div>
+        <p>A <b>base em que alguma coisa se firma</b>. “Um argumento sem lastro”, “ele tem
+        lastro para falar disso”. É a acepção que a maioria das pessoas reconhece de imediato,
+        mesmo sem saber a origem náutica.</p>
+      </div>
+      <div class="linha">
+        <div class="rot">Coloquial</div>
+        <p>E existe ainda a acepção mais caseira de todas, que os dicionários registram sem
+        cerimônia: <b>o que se come antes de beber</b>, para forrar o estômago. Um sistema de
+        despesas de casa não podia pedir referência mais doméstica.</p>
+      </div>
+    </div>
+
+    <h3>Por que encaixa</h3>
+    <div class="porques">
+      <div class="porque">
+        <div class="num">1</div>
+        <h4>Diz estabilidade, não restrição</h4>
+        <p>“Controle”, “orçamento” e “gastos” carregam um tom de vigilância. Lastro carrega o
+        oposto: é o peso que você <i>quer</i> ter a bordo. Você não abre o app para se punir,
+        abre para não virar.</p>
+      </div>
+      <div class="porque">
+        <div class="num">2</div>
+        <h4>Já é financeiro sem dizer “financeiro”</h4>
+        <p>A dupla leitura vem de graça. Quem conhece a acepção econômica entende na hora;
+        quem não conhece entende a náutica. Nos dois caminhos chega no mesmo lugar — algo que
+        dá respaldo ao que você decide.</p>
+      </div>
+      <div class="porque">
+        <div class="num">3</div>
+        <h4>Duas sílabas e nada para explicar</h4>
+        <p>É curto, se escreve como se fala, não tem grafia ambígua e já existe em português.
+        Você fala “vou lançar no Lastro” e a frase se sustenta sozinha, sem precisar de
+        “meu app de”.</p>
+      </div>
+      <div class="porque">
+        <div class="num">4</div>
+        <h4>Vira imagem sem esforço</h4>
+        <p>É o teste que a maioria dos nomes reprova. Lastro tem linha d’água, tem submerso,
+        tem peso, tem flutuação — a marca desta página saiu direto da palavra, não foi colada
+        nela depois.</p>
+      </div>
+    </div>
+
+    <div class="ressalva">
+      <b>Uma ressalva honesta:</b> “lastro” também é termo corrente no mercado financeiro
+      (CDB com lastro, lastro de recebíveis). Isso não confunde no uso — o contexto é outro —
+      mas significa que buscar por “lastro” sozinho vai trazer muito conteúdo de investimentos.
+      Se algum dia isso importar, o nome de busca é <b>Lastro app</b> ou o domínio direto.
+    </div>
+  </section>
+
+  <!-- ============================================================ A MARCA -->
+  <section id="marca">
+    <h2>A marca</h2>
+    <p class="lede">Uma palavra parcialmente submersa. Não existe símbolo separado, ícone ao
+    lado nem monograma: a marca <i>é</i> a palavra, e a ideia acontece dentro dela.</p>
+    <div class="anats">
+        <figure class="anat">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ac_5"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="ab_5"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ac_5)" opacity="1.0"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#ab_5)" opacity="0.12"/>
+  <g stroke="#10B981" opacity="0.12"><path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke-width="5" stroke-linecap="round" fill="none"/></g>
+</svg>
+</div>
+          <figcaption><h4>A parte emersa</h4><p>Cinza, mais leve. É o que ainda não foi comprometido — a folga que sobrou no mês.</p></figcaption>
+        </figure>        <figure class="anat">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ac_6"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="ab_6"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ac_6)" opacity="0.12"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#ab_6)" opacity="1.0"/>
+  <g stroke="#10B981" opacity="0.12"><path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke-width="5" stroke-linecap="round" fill="none"/></g>
+</svg>
+</div>
+          <figcaption><h4>A parte submersa</h4><p>Grafite sólido, com peso visual. É o que já foi gasto: não flutua mais, virou lastro.</p></figcaption>
+        </figure>        <figure class="anat">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ac_7"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="ab_7"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ac_7)" opacity="0.12"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#ab_7)" opacity="0.12"/>
+  <g stroke="#10B981" opacity="1.0"><path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke-width="5" stroke-linecap="round" fill="none"/></g>
+</svg>
+</div>
+          <figcaption><h4>A linha d’água</h4><p>As duas marcas verdes só aparecem fora da palavra. Elas marcam a superfície — e é justamente por não atravessarem as letras que a marca não lê como texto riscado.</p></figcaption>
+        </figure>
+    </div>
+    <h3>Tipografia</h3>
+    <div class="painel">
+      <p style="margin:0;font-size:15px;color:var(--gr2)">Desenhada sobre a
+      <b style="color:var(--gr)">TeX Gyre Adventor Bold</b>, uma geométrica de círculo
+      perfeito na linhagem da Avant Garde. O <b style="color:var(--gr)">O</b> circular é o que
+      faz a linha d’água funcionar: ao ser cortado na horizontal, ele produz dois segmentos
+      simétricos e limpos, coisa que um O ovalado não daria. Todas as letras já estão
+      convertidas em contornos nos arquivos — nada depende de a fonte estar instalada.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ DADO VIVO -->
+  <section id="vivo">
+    <h2>A linha d’água como dado vivo</h2>
+    <p class="lede">Aqui está o que separa esta marca de um logotipo comum: o nível não é
+    decoração, é uma variável. Arraste e veja.</p>
+
+    <div class="painel">
+      <div class="demo">
+        <div class="palco"><svg class="marca" viewBox="-24 -24 557 148" role="img" aria-label="Lastro">
+  <defs>
+    <clipPath id="demo-cima"><rect x="-600" y="-600" width="2400" height="638"/></clipPath>
+    <clipPath id="demo-baixo"><rect x="-600" y="38" width="2400" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#demo-cima)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#demo-baixo)"/>
+  <path id="demo-linha" d="M-20 38 H-8 M517 38 H529" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg></div>
+        <div class="controle">
+          <label for="rng">Quanto do orçamento já foi</label>
+          <input id="rng" type="range" min="0" max="100" value="62" step="1"
+                 aria-label="Percentual do orçamento consumido">
+          <div class="leitura">
+            <div><span>Submerso</span><b id="pct">62%</b></div>
+            <div class="dir"><span>Gasto no mês</span><b id="val">R$ 2.480</b></div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">Os quatro estados de referência</h3>
+      <div class="niveis">
+        <figure class="nivel">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ciman0_1"><rect x="-600" width="2400" y="-600" height="675.0"/></clipPath>
+    <clipPath id="baixon0_1"><rect x="-600" width="2400" y="75.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ciman0_1)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixon0_1)"/>
+  <path d="M-20 75.0 H-8 M517.0 75.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+          <figcaption>Começo do mês</figcaption>
+        </figure>        <figure class="nivel">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ciman1_2"><rect x="-600" width="2400" y="-600" height="650.0"/></clipPath>
+    <clipPath id="baixon1_2"><rect x="-600" width="2400" y="50.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ciman1_2)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixon1_2)"/>
+  <path d="M-20 50.0 H-8 M517.0 50.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+          <figcaption>Metade do orçamento</figcaption>
+        </figure>        <figure class="nivel">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ciman2_3"><rect x="-600" width="2400" y="-600" height="622.0"/></clipPath>
+    <clipPath id="baixon2_3"><rect x="-600" width="2400" y="22.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ciman2_3)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixon2_3)"/>
+  <path d="M-20 22.0 H-8 M517.0 22.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+          <figcaption>Zona de atenção</figcaption>
+        </figure>        <figure class="nivel">
+          <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="ciman3_4"><rect x="-600" width="2400" y="-600" height="604.0"/></clipPath>
+    <clipPath id="baixon3_4"><rect x="-600" width="2400" y="4.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#ciman3_4)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixon3_4)"/>
+  <path d="M-20 4.0 H-8 M517.0 4.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+          <figcaption>No limite</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="ressalva" style="border-left-color:var(--es)">
+      <b>Como usar sem estragar a marca:</b> um logotipo que muda o tempo todo deixa de ser
+      logotipo. A regra é simples — <b>na identidade o nível é fixo em 62%</b> (favicon, e-mail,
+      documento, qualquer lugar fora do produto). O nível dinâmico só vive <b>dentro do
+      dashboard</b>, e de preferência num lugar só: o cabeçalho. Ali ele deixa de ser enfeite e
+      vira o primeiro indicador que você lê ao abrir o sistema, antes de qualquer número.
+    </div>
+  </section>
+
+  <!-- ============================================================ CONSTRUCAO -->
+  <section id="construcao">
+    <h2>Construção</h2>
+    <p class="lede">Tudo é medido em altura de caixa alta (a altura do L), abreviada como
+    <b>H</b>. Assim as regras valem em qualquer tamanho.</p>
+    <div class="regras">
+      <div class="regra"><span>Nível padrão</span><b>62%</b>
+        <p>Fora do produto, sempre este. É o ponto em que a palavra lê melhor: o corte cai
+        acima do meio das letras e ainda sobra grafite suficiente para dar peso.</p></div>
+      <div class="regra"><span>Respiro</span><b>0,5 H</b>
+        <p>Metade da altura do L livre em volta, em todos os lados. As marcas laterais da linha
+        d’água já ocupam parte desse espaço — não encoste nada nelas.</p></div>
+      <div class="regra"><span>Largura mínima</span><b>130 px</b>
+        <p>Abaixo disso a diferença entre o cinza e o grafite some. Para espaços menores, use
+        o selo.</p></div>
+      <div class="regra"><span>Selo</span><b>20 px</b>
+        <p>O selo é o L com a mesma linha d’água dentro do bloco. Aguenta até 20 px; abaixo
+        disso vira mancha.</p></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ CORES -->
+  <section id="cores">
+    <h2>Cores</h2>
+    <p class="lede">Três papéis e nada mais: o que já foi, o que ainda não foi, e a superfície
+    que separa os dois.</p>
+    <div class="paleta">
+      <div class="cor"><div class="chip" style="background:#1F2937"></div>
+        <div class="info"><strong>Grafite</strong><code>#1F2937</code><em>parte submersa</em></div></div>
+      <div class="cor"><div class="chip" style="background:#B6C2CF"></div>
+        <div class="info"><strong>Emerso</strong><code>#B6C2CF</code><em>parte acima da linha</em></div></div>
+      <div class="cor"><div class="chip" style="background:#10B981"></div>
+        <div class="info"><strong>Esmeralda</strong><code>#10B981</code><em>a linha d’água</em></div></div>
+      <div class="cor"><div class="chip" style="background:#34D399"></div>
+        <div class="info"><strong>Esmeralda claro</strong><code>#34D399</code><em>linha, fundo escuro</em></div></div>
+      <div class="cor"><div class="chip" style="background:#5D6B7B"></div>
+        <div class="info"><strong>Emerso escuro</strong><code>#5D6B7B</code><em>emerso, fundo escuro</em></div></div>
+      <div class="cor"><div class="chip" style="background:#F8FAFC;border-bottom:1px solid #E5E7EB"></div>
+        <div class="info"><strong>Claro</strong><code>#F8FAFC</code><em>submerso, fundo escuro</em></div></div>
+    </div>
+    <div class="ressalva" style="border-left-color:var(--gr3)">
+      <b>No tema escuro tudo inverte de papel, não de lógica:</b> o submerso passa a ser o
+      claro (<code>#F8FAFC</code>) e o emerso, o cinza escuro (<code>#5D6B7B</code>). O que
+      importa é que a parte já gasta continue sendo a de <b>maior contraste</b> contra o fundo.
+      É ela que precisa pesar.
+    </div>
+  </section>
+
+  <!-- ============================================================ VERSOES -->
+  <section id="versoes">
+    <h2>Versões</h2>
+    <p class="lede">Quatro arquivos cobrem tudo. Se aparecer um caso que nenhum deles resolve,
+    é sinal de que a aplicação é que está errada.</p>
+    <div class="versoes">
+      <figure class="versao">
+        <div class="art"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="cimaa_14"><rect x="-600" width="2400" y="-600" height="638.0"/></clipPath>
+    <clipPath id="baixoa_14"><rect x="-600" width="2400" y="38.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#cimaa_14)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixoa_14)"/>
+  <path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+        <figcaption><b>Principal</b>Fundo claro. É a versão padrão em qualquer lugar.</figcaption>
+      </figure>
+      <figure class="versao">
+        <div class="art esc"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="dcimaa_15"><rect x="-600" width="2400" y="-600" height="638.0"/></clipPath>
+    <clipPath id="dbaixoa_15"><rect x="-600" width="2400" y="38.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#5D6B7B" clip-path="url(#dcimaa_15)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#F8FAFC" clip-path="url(#dbaixoa_15)"/>
+  <path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke="#34D399"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+        <figcaption><b>Fundo escuro</b>Papéis invertidos, mesma lógica de contraste.</figcaption>
+      </figure>
+      <figure class="versao">
+        <div class="art mono"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="mc_16"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="mb_16"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <g fill="currentColor">
+    <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" opacity=".34" clip-path="url(#mc_16)"/>
+    <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" clip-path="url(#mb_16)"/>
+    <path d="M-20 38.0 H-8 M517.0 38.0 H529.0"
+          stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
+</div>
+        <figcaption><b>Monocromática</b>Herda <code>currentColor</code>. Para impressão, carimbo
+        ou fundo colorido.</figcaption>
+      </figure>
+      <figure class="versao">
+        <div class="art" style="padding:22px"><div style="width:104px"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="sc_17"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="sb_17"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#sc_17)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#sb_17)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
+</div></div>
+        <figcaption><b>Selo</b>O L com a mesma linha d’água. Favicon, avatar, ícone de app.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ APLICACAO -->
+  <section id="aplicacao">
+    <h2>Aplicação</h2>
+    <p class="lede">No cabeçalho do dashboard, com o nível ligado ao mês corrente.</p>
+      <div class="barra">
+        <div class="logo"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="cimaa_18"><rect x="-600" width="2400" y="-600" height="638.0"/></clipPath>
+    <clipPath id="baixoa_18"><rect x="-600" width="2400" y="38.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#B6C2CF" clip-path="url(#cimaa_18)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#1F2937" clip-path="url(#baixoa_18)"/>
+  <path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke="#10B981"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+        <nav><span class=at>Visão geral</span><span>Despesas</span><span>Categorias</span><span>Relatórios</span></nav>
+      </div>
+      <div class="barra escura">
+        <div class="logo"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 557.0 148" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="dcimaa_19"><rect x="-600" width="2400" y="-600" height="638.0"/></clipPath>
+    <clipPath id="dbaixoa_19"><rect x="-600" width="2400" y="38.0" height="600"/></clipPath>
+  </defs>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#5D6B7B" clip-path="url(#dcimaa_19)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z M66.49 100.00H86.92L98.02 74.15H133.60L144.29 100.00H164.73L122.78 0.00H108.17ZM104.78 56.43 115.47 26.12 126.16 56.43Z M173.57 71.45C175.19 90.39 188.86 101.76 206.45 101.76C224.45 101.76 238.39 87.82 238.39 69.69C238.39 56.16 232.84 47.36 212.54 39.78C203.07 36.27 202.80 36.13 201.45 35.32C197.79 33.02 195.90 29.91 195.90 26.25C195.90 20.30 200.09 16.10 206.18 16.10C212.41 16.10 216.19 19.89 216.74 26.66H235.95C235.00 9.07 222.42 -1.76 206.32 -1.76C190.21 -1.76 177.22 10.83 177.22 26.66C177.22 39.24 184.67 48.85 198.06 53.86C211.32 58.86 212.41 59.27 215.38 61.57C218.36 63.87 219.98 67.66 219.98 71.72C219.98 78.89 214.44 83.90 206.45 83.90C198.20 83.90 193.73 79.84 192.92 71.45Z M248.99 17.73H267.53V100.00H286.06V17.73H304.60V0.00H248.99Z M320.08 100.00H338.61V61.71L364.87 100.00H387.73L360.67 63.06C378.67 58.59 386.79 47.63 386.79 32.07C386.79 21.92 383.13 13.26 376.23 7.44C369.74 1.89 362.57 0.00 348.90 0.00H320.08ZM338.61 47.77V17.73H346.87C364.46 17.73 368.11 23.68 368.11 32.61C368.11 43.17 362.02 47.77 347.68 47.77Z M399.42 50.07C399.42 78.89 422.69 101.76 452.06 101.76C481.15 101.76 503.61 79.16 503.61 49.93C503.61 21.38 480.74 -1.76 452.19 -1.76C422.42 -1.76 399.42 20.84 399.42 50.07ZM418.09 50.07C418.09 30.72 432.71 16.10 451.92 16.10C470.46 16.10 484.94 30.99 484.94 50.20C484.94 69.42 470.87 83.90 451.92 83.90C432.98 83.90 418.09 69.01 418.09 50.07Z" fill="#F8FAFC" clip-path="url(#dbaixoa_19)"/>
+  <path d="M-20 38.0 H-8 M517.0 38.0 H529.0" stroke="#34D399"
+        stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>
+</div>
+        <nav><span class=at>Visão geral</span><span>Despesas</span><span>Categorias</span><span>Relatórios</span></nav>
+      </div>
+    <h3>Redução do selo</h3>
+    <div class="painel">
+      <div class="selos">
+        <div class="item">
+          <div style="width:16px"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="sc_8"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="sb_8"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#sc_8)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#sb_8)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
+</div><span>16 px</span>
+        </div>        <div class="item">
+          <div style="width:24px"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="sc_9"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="sb_9"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#sc_9)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#sb_9)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
+</div><span>24 px</span>
+        </div>        <div class="item">
+          <div style="width:32px"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="sc_10"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="sb_10"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#sc_10)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#sb_10)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
+</div><span>32 px</span>
+        </div>        <div class="item">
+          <div style="width:48px"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="sc_11"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="sb_11"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#sc_11)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#sb_11)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
+</div><span>48 px</span>
+        </div>        <div class="item">
+          <div style="width:72px"><svg class="marca" style="" xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="sc_12"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="sb_12"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#sc_12)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#sb_12)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
+</div><span>72 px</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ NAO FACA -->
+  <section id="naofaca">
+    <h2>Não faça</h2>
+    <p class="lede">A marca é frágil em exatamente cinco pontos. Todos eles quebram a leitura
+    de “submerso”.</p>
+    <div class="naos">
+      <div class="nao"><b>Não atravesse as letras com a linha</b>
+        A linha d’água só existe fora da palavra. Puxada de ponta a ponta, ela vira texto riscado.</div>
+      <div class="nao"><b>Não inverta as cores</b>
+        O claro sempre em cima, o escuro sempre embaixo. Invertido, a leitura passa a ser de
+        algo boiando, não de algo submerso.</div>
+      <div class="nao"><b>Não incline nem curve</b>
+        Superfície de água é horizontal. Uma linha d’água em diagonal não é estilo, é naufrágio.</div>
+      <div class="nao"><b>Não anime fora do produto</b>
+        Nível fixo em 62% em qualquer material que não seja o dashboard.</div>
+      <div class="nao"><b>Não redesenhe o O</b>
+        O círculo perfeito é o que faz o corte horizontal funcionar. Trocar a fonte quebra a marca.</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ CODIGO -->
+  <section id="codigo">
+    <h2>Implementação</h2>
+    <p class="lede">O SVG é o mesmo em todos os casos. O que muda é quem controla o nível.</p>
+
+    <h3>Ligando o nível ao gasto do mês</h3>
+    <pre><code><span class="com">// o SVG precisa estar inline no HTML para o JS alcançar os clipPath</span>
+<span class="tok">function</span> nivelLastro(svg, fracao) {
+  <span class="tok">const</span> f = Math.max(<span class="str">0</span>, Math.min(<span class="str">1</span>, fracao));
+  <span class="tok">const</span> y = Math.round(<span class="str">100</span> * (<span class="str">1</span> - f) * <span class="str">100</span>) / <span class="str">100</span>;  <span class="com">// 0 = cheio, 100 = vazio</span>
+
+  svg.querySelector(<span class="str">'#demo-cima rect'</span>).setAttribute(<span class="str">'height'</span>, <span class="str">600</span> + y);
+  svg.querySelector(<span class="str">'#demo-baixo rect'</span>).setAttribute(<span class="str">'y'</span>, y);
+  svg.querySelector(<span class="str">'#demo-linha'</span>)
+     .setAttribute(<span class="str">'d'</span>, <span class="str">`M-20 ${y} H-8 M517 ${y} H529`</span>);
+}
+
+<span class="com">// exemplo: R$ 2.480 de um orçamento de R$ 4.000</span>
+nivelLastro(document.querySelector(<span class="str">'#logo'</span>), <span class="str">2480</span> / <span class="str">4000</span>);</code></pre>
+
+    <h3>Favicon e PWA</h3>
+    <pre><code>&lt;<span class="tok">link</span> rel=<span class="str">"icon"</span> href=<span class="str">"/lastro-selo.svg"</span> type=<span class="str">"image/svg+xml"</span>&gt;
+&lt;<span class="tok">link</span> rel=<span class="str">"apple-touch-icon"</span> href=<span class="str">"/lastro-selo-192.png"</span>&gt;
+&lt;<span class="tok">meta</span> name=<span class="str">"theme-color"</span> content=<span class="str">"#1F2937"</span>&gt;</code></pre>
+
+    <h3>Troca automática de tema</h3>
+    <pre><code>&lt;<span class="tok">picture</span>&gt;
+  &lt;<span class="tok">source</span> srcset=<span class="str">"/lastro-dark.svg"</span> media=<span class="str">"(prefers-color-scheme: dark)"</span>&gt;
+  &lt;<span class="tok">img</span> src=<span class="str">"/lastro.svg"</span> alt=<span class="str">"Lastro"</span> height=<span class="str">"34"</span>&gt;
+&lt;/<span class="tok">picture</span>&gt;</code></pre>
+    <p class="lede" style="margin-top:14px">Atenção: dentro de <code>&lt;img&gt;</code> o SVG
+    fica isolado — o JS da página não alcança os <code>clipPath</code> e o
+    <code>currentColor</code> não é herdado. Use <code>&lt;img&gt;</code> onde o nível é fixo e
+    SVG inline onde ele precisa se mexer.</p>
+  </section>
+
+</div>
+
+<script>
+  (function () {
+    var rng = document.getElementById('rng');
+    var cima = document.querySelector('#demo-cima rect');
+    var baixo = document.querySelector('#demo-baixo rect');
+    var linha = document.getElementById('demo-linha');
+    var pct = document.getElementById('pct');
+    var val = document.getElementById('val');
+    var ORCAMENTO = 4000;
+
+    function render() {
+      var f = Number(rng.value) / 100;
+      var y = Math.round(100 * (1 - f) * 100) / 100;
+      cima.setAttribute('height', 600 + y);
+      baixo.setAttribute('y', y);
+      linha.setAttribute('d', 'M-20 ' + y + ' H-8 M517 ' + y + ' H529');
+      pct.textContent = rng.value + '%';
+      val.textContent = 'R$ ' + Math.round(ORCAMENTO * f).toLocaleString('pt-BR');
+    }
+    rng.addEventListener('input', render);
+    render();
+  })();
+</script>
+</body>
+</html>

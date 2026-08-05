@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-61.2 -45.0 190.0 190.0" role="img" aria-label="Lastro">
+  <title>Lastro</title>
+  <defs>
+    <clipPath id="selocima"><rect x="-600" y="-600" width="2400" height="638.0"/></clipPath>
+    <clipPath id="selobaixo"><rect x="-600" y="38.0" width="2400" height="600"/></clipPath>
+  </defs>
+  <rect x="-61.2" y="-45.0" width="190.0" height="190.0" rx="42" fill="#1F2937"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#5D6B7B" clip-path="url(#selocima)"/>
+  <path d="M9.20 100.00H58.32V82.27H27.74V0.00H9.20Z" fill="#F8FAFC" clip-path="url(#selobaixo)"/>
+  <path d="M-39.2 38.0 H1.2 M66.3 38.0 H106.8"
+        stroke="#10B981" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
