@@ -19,13 +19,28 @@ import {
 } from "@/app/actions/month-incomes"
 import { MonthIncomeFields } from "./month-income-fields"
 import { toast } from "sonner"
-import { Edit2 } from "lucide-react"
+import { Edit2, PlusCircle } from "lucide-react"
 
-export function MonthDialog({ activeMonth }: { activeMonth?: MonthData }) {
-    const [open, setOpen] = useState(false)
+interface MonthDialogProps {
+    activeMonth?: MonthData
+    /** Elemento que abre o modal. Passe `null` para um modal totalmente controlado (sem trigger próprio). */
+    trigger?: React.ReactNode | null
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+}
+
+export function MonthDialog({ activeMonth, trigger, open: externalOpen, onOpenChange: externalOnOpenChange }: MonthDialogProps) {
+    const isControlled = externalOpen !== undefined
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = isControlled ? externalOpen! : internalOpen
     const [loading, setLoading] = useState(false)
     const [rows, setRows] = useState<IncomeEditorRow[]>([])
     const [values, setValues] = useState<Record<string, number>>({})
+
+    function handleOpenChange(value: boolean) {
+        if (!isControlled) setInternalOpen(value)
+        externalOnOpenChange?.(value)
+    }
 
     useEffect(() => {
         if (!open) return
@@ -70,7 +85,7 @@ export function MonthDialog({ activeMonth }: { activeMonth?: MonthData }) {
                 await createMonth(formData, incomes)
                 toast.success("Período criado com sucesso!")
             }
-            setOpen(false)
+            handleOpenChange(false)
         } catch (error: unknown) {
             toast.error(error instanceof Error ? error.message : "Não foi possível salvar.")
         } finally {
@@ -78,21 +93,21 @@ export function MonthDialog({ activeMonth }: { activeMonth?: MonthData }) {
         }
     }
 
+    const defaultTrigger = activeMonth ? (
+        <Button variant="ghost" size="icon-sm" className="text-app-accent">
+            <Edit2 className="h-4 w-4" />
+        </Button>
+    ) : (
+        <Button>
+            <PlusCircle className="h-4 w-4" />
+            Criar novo período
+        </Button>
+    )
+    const triggerNode = trigger === null ? null : (trigger ?? defaultTrigger)
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {activeMonth ? (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-blue-500 hover:text-blue-700"
-                    >
-                        <Edit2 className="h-4 w-4" />
-                    </Button>
-                ) : (
-                    <Button className="bg-blue-600">Criar Novo Período</Button>
-                )}
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            {triggerNode && <DialogTrigger asChild>{triggerNode}</DialogTrigger>}
             <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>
@@ -138,7 +153,7 @@ export function MonthDialog({ activeMonth }: { activeMonth?: MonthData }) {
                     <MonthIncomeFields rows={rows} values={values} onChange={handleIncomeChange} />
 
                     {!activeMonth && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-app-muted">
                             Ao criar um período novo ele fica <strong>aberto</strong> e passa a ser o
                             selecionado nos relatórios. Outros períodos abertos serão fechados. As
                             despesas recorrentes ativas são lançadas automaticamente.

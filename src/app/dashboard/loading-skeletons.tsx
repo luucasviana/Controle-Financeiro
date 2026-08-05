@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Surface } from "@/components/ui/surface"
 
@@ -8,22 +8,6 @@ function PageHeaderSkeleton() {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-4 w-80 max-w-full" />
         </div>
-    )
-}
-
-function PanelSkeleton({ rows = 4 }: { rows?: number }) {
-    return (
-        <Card>
-            <CardHeader className="space-y-2">
-                <Skeleton className="h-5 w-36" />
-                <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent className="space-y-3">
-                {Array.from({ length: rows }).map((_, index) => (
-                    <Skeleton key={index} className="h-12 w-full" />
-                ))}
-            </CardContent>
-        </Card>
     )
 }
 
@@ -107,10 +91,27 @@ export function ProjectionPageSkeleton() {
     return (
         <div className="flex-1 space-y-6">
             <PageHeaderSkeleton />
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, index) => (
-                    <PanelSkeleton key={index} rows={3} />
-                ))}
+            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+                <Surface className="overflow-hidden p-0">
+                    <div className="space-y-2 border-b border-app-hairline px-6 py-5">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-64 max-w-full" />
+                    </div>
+                    <div className="space-y-3 p-6">
+                        {Array.from({ length: 6 }).map((_, index) => (
+                            <Skeleton key={index} className="h-8 w-full" />
+                        ))}
+                    </div>
+                </Surface>
+                <Surface className="p-6">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="mt-2 h-3 w-48 max-w-full" />
+                    <div className="mt-4 space-y-2">
+                        {Array.from({ length: 4 }).map((_, index) => (
+                            <Skeleton key={index} className="h-10 w-full" />
+                        ))}
+                    </div>
+                </Surface>
             </div>
         </div>
     )
