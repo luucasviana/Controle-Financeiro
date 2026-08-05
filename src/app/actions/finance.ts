@@ -288,7 +288,7 @@ export async function getDashboardData(month: MonthData) {
 }
 
 export async function createMonthExpense(formData: FormData) {
-    const supabase = await createClient() as any
+    const supabase = await createClient()
     const month_id = formData.get("month_id") as string
     let due_date = formData.get("due_date") as string
     const description = formData.get("description") as string
@@ -356,7 +356,7 @@ export async function createMonthExpense(formData: FormData) {
 }
 
 export async function updateMonthExpense(formData: FormData) {
-    const supabase = await createClient() as any
+    const supabase = await createClient()
     const expenseId = formData.get("expense_id") as string
     const month_id = formData.get("month_id") as string
     const due_date = formData.get("due_date") as string
@@ -402,7 +402,7 @@ export async function updateMonthExpense(formData: FormData) {
         throw new Error("Expense not found")
     }
 
-    const updatePayload: Record<string, unknown> = {
+    const updatePayload: Database["public"]["Tables"]["month_expenses"]["Update"] = {
         month_id,
         due_date,
         description,
@@ -417,7 +417,11 @@ export async function updateMonthExpense(formData: FormData) {
         updatePayload.is_excluded = isExcludedRaw === "true"
     }
 
-    const { error } = await supabase.from("month_expenses").update(updatePayload).eq("id", expenseId)
+    const { error } = await supabase
+        .from("month_expenses")
+        .update(updatePayload)
+        .eq("id", expenseId)
+        .eq("user_id", userId)
 
     if (error) {
         throw new Error(error.message)
