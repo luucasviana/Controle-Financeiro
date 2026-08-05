@@ -39,7 +39,7 @@ export default function SettingsPage() {
         <div className="flex-1 space-y-6 max-w-4xl mx-auto w-full">
             <PageHeader
                 title="Configurações"
-                description="Gerencie sua conta e preferências do Controle Financeiro."
+                description="Gerencie sua conta e preferências do Lastro."
             />
 
             <Surface className="p-5 space-y-4">

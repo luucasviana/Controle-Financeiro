@@ -7,16 +7,30 @@ import { AppTabs } from "./app-tabs"
 import { PeriodSwitcher } from "./period-switcher"
 import { AccountMenu } from "./account-menu"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
+import { useMonth } from "@/components/providers/month-provider"
 import { HiddenModeShortcut } from "@/components/hidden-mode-shortcut"
 import { Tag } from "@/components/ui/tag"
+import { LastroMark, LastroSelo } from "@/components/ui/lastro-mark"
 import { isMonthScopedPath } from "@/lib/month-scoped-routes"
 import type { MonthData } from "@/app/actions/months"
 import { EyeOff } from "lucide-react"
 
-export function Header({ months }: { months: MonthData[] }) {
+const DEFAULT_LASTRO_LEVEL = 0.62
+
+export function Header({
+    months,
+    levelByMonth,
+}: {
+    months: MonthData[]
+    levelByMonth: Record<string, number>
+}) {
     const pathname = usePathname()
     const { hiddenModeEnabled } = useHiddenMode()
+    const { monthId } = useMonth()
     const showPeriod = isMonthScopedPath(pathname)
+    const level = (monthId && levelByMonth[monthId] !== undefined)
+        ? levelByMonth[monthId]
+        : DEFAULT_LASTRO_LEVEL
 
     return (
         <header className="sticky top-0 z-30 flex min-h-[54px] flex-wrap items-center gap-4 bg-app-surface px-4 md:px-5">
@@ -24,9 +38,9 @@ export function Header({ months }: { months: MonthData[] }) {
                 <MobileSidebar />
             </div>
 
-            <Link href="/dashboard" className="flex items-center gap-2">
-                <span className="h-5 w-5 rounded-md bg-app-accent" />
-                <span className="text-[15px] font-semibold tracking-tight">Controle</span>
+            <Link href="/dashboard" className="flex shrink-0 items-center">
+                <LastroSelo level={level} className="h-6 w-6 sm:hidden" />
+                <LastroMark level={level} className="hidden h-auto w-[140px] min-w-[130px] sm:block" />
             </Link>
 
             <div className="hidden md:block">
