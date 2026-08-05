@@ -8,16 +8,10 @@
 --
 -- Estado verificado antes de rodar: 0 linhas.
 --
--- ⚠️ AINDA NÃO EXECUTADA. A tabela `card_transactions` continua existindo
--- no banco. A execução foi barrada por uma trava de segurança do ambiente
--- (drop de tabela em produção) e precisa ser rodada manualmente no SQL
--- Editor do Supabase.
---
--- Enquanto não for executada, NÃO remova `card_transactions` de
--- `supabase.sql` nem de `src/lib/database.types.ts` — o schema declarado
--- ficaria divergindo do banco real.
---
--- Rodar UMA VEZ. É irreversível.
+-- EXECUTADA em produção. A tabela `card_transactions` não existe mais no
+-- banco, e o código (`supabase.sql`, `src/lib/database.types.ts`,
+-- `src/app/actions/transactions.ts`) foi alinhado logo em seguida. Este
+-- arquivo permanece apenas como registro histórico da migração.
 -- ============================================================
 
 begin;

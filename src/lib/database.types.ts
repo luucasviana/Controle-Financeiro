@@ -249,39 +249,6 @@ export interface Database {
                 }
                 Relationships: []
             }
-            card_transactions: {
-                Row: {
-                    id: string
-                    user_id: string
-                    card_id: string
-                    expense_id: string | null
-                    occurred_at: string
-                    description: string
-                    amount: number
-                    created_at: string
-                }
-                Insert: {
-                    id?: string
-                    user_id: string
-                    card_id: string
-                    expense_id?: string | null
-                    occurred_at: string
-                    description: string
-                    amount: number
-                    created_at?: string
-                }
-                Update: {
-                    id?: string
-                    user_id?: string
-                    card_id?: string
-                    expense_id?: string | null
-                    occurred_at?: string
-                    description?: string
-                    amount?: number
-                    created_at?: string
-                }
-                Relationships: []
-            }
         }
         Views: {
             [_ in never]: never

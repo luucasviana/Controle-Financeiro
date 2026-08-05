@@ -116,17 +116,6 @@ create table if not exists public.card_month_balances (
     unique (user_id, card_id, month_id)
 );
 
-create table if not exists public.card_transactions (
-    id uuid primary key default uuid_generate_v4(),
-    user_id uuid not null references auth.users(id) on delete cascade,
-    card_id uuid not null references public.cards(id) on delete cascade,
-    expense_id uuid null references public.month_expenses(id) on delete set null,
-    occurred_at date not null,
-    description text not null,
-    amount numeric(12,2) not null default 0,
-    created_at timestamptz not null default now()
-);
-
 create index if not exists idx_months_user_status_start_date on public.months (user_id, status, start_date desc);
 create index if not exists idx_months_user_start_date on public.months (user_id, start_date desc);
 create index if not exists idx_income_sources_user_active_hidden on public.income_sources (user_id, is_active, is_hidden);
@@ -151,8 +140,6 @@ create index if not exists idx_month_expenses_user_month_excluded on public.mont
 create index if not exists idx_month_expenses_due_date on public.month_expenses (due_date);
 create index if not exists idx_card_month_balances_card_month on public.card_month_balances (card_id, month_id);
 create index if not exists idx_card_month_balances_user_month on public.card_month_balances (user_id, month_id);
-create index if not exists idx_card_transactions_user_card on public.card_transactions (user_id, card_id);
-create index if not exists idx_card_transactions_occurred_at on public.card_transactions (occurred_at);
 
 alter table public.months enable row level security;
 alter table public.income_sources enable row level security;
@@ -161,7 +148,6 @@ alter table public.recurring_expenses enable row level security;
 alter table public.cards enable row level security;
 alter table public.month_expenses enable row level security;
 alter table public.card_month_balances enable row level security;
-alter table public.card_transactions enable row level security;
 
 drop policy if exists "Users can manage their own months" on public.months;
 create policy "Users can manage their own months"
@@ -213,13 +199,6 @@ create policy "Users can manage their own card balances"
     using (auth.uid() = user_id)
     with check (auth.uid() = user_id);
 
-drop policy if exists "Users can manage their own card transactions" on public.card_transactions;
-create policy "Users can manage their own card transactions"
-    on public.card_transactions
-    for all
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
-
 create or replace function public.clean_user_data()
 returns void
 language plpgsql
@@ -234,7 +213,6 @@ begin
         raise exception 'Não autenticado';
     end if;
 
-    delete from public.card_transactions where user_id = v_user_id;
     delete from public.card_month_balances where user_id = v_user_id;
     delete from public.month_expenses where user_id = v_user_id;
     delete from public.recurring_expenses where user_id = v_user_id;
