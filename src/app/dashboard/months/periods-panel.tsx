@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { toast } from "sonner"
-import { CalendarDays, Copy, Edit, MoreHorizontal, PlayCircle, StopCircle, Trash2 } from "lucide-react"
+import { CalendarDays, Copy, Edit, Eye, MoreHorizontal, StopCircle, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tag } from "@/components/ui/tag"
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useMonth } from "@/components/providers/month-provider"
 import { deleteMonth, setMonthStatus, type MonthData } from "@/app/actions/months"
+import { buildMonthScopedHref } from "@/lib/month-scoped-routes"
 import { MonthDialog } from "./month-dialog"
 import { cn } from "@/lib/utils"
 
@@ -33,7 +35,7 @@ export function PeriodsPanel({
     showDates?: boolean
     emptyMessage?: string
 }) {
-    const { monthId, setMonthId } = useMonth()
+    const { monthId } = useMonth()
     const [editingMonth, setEditingMonth] = useState<MonthData | null>(null)
     const [duplicatingMonth, setDuplicatingMonth] = useState<MonthData | null>(null)
     const [busyId, setBusyId] = useState<string | null>(null)
@@ -101,9 +103,11 @@ export function PeriodsPanel({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setMonthId(month.id)}>
-                                    <PlayCircle className="h-4 w-4" />
-                                    Abrir
+                                <DropdownMenuItem asChild>
+                                    <Link href={buildMonthScopedHref("/dashboard", month.id)}>
+                                        <Eye className="h-4 w-4" />
+                                        Ver período
+                                    </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setEditingMonth(month)}>
                                     <Edit className="h-4 w-4" />
