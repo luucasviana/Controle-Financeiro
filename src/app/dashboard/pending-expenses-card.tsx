@@ -57,8 +57,13 @@ function buildMeta(expense: ExpenseRow, cardsMap: Record<string, string>) {
     return parts.join(" · ")
 }
 
-function RowActions({ expense }: { expense: ExpenseRow }) {
-    const [openEdit, setOpenEdit] = useState(false)
+function RowActions({
+    expense,
+    onEdit,
+}: {
+    expense: ExpenseRow
+    onEdit: () => void
+}) {
     const [openDuplicate, setOpenDuplicate] = useState(false)
 
     async function handleDelete() {
@@ -81,7 +86,7 @@ function RowActions({ expense }: { expense: ExpenseRow }) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+                    <DropdownMenuItem onClick={onEdit}>
                         <Pencil className="h-4 w-4" />
                         Editar
                     </DropdownMenuItem>
@@ -97,7 +102,6 @@ function RowActions({ expense }: { expense: ExpenseRow }) {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <ExpenseDialog mode="edit" expense={expense} open={openEdit} onOpenChange={setOpenEdit} />
             <ExpenseDialog mode="duplicate" expense={expense} open={openDuplicate} onOpenChange={setOpenDuplicate} />
         </>
     )
@@ -161,7 +165,7 @@ function ExpenseRowItem({
                 {formatCurrency(expense.amount)}
             </span>
 
-            <RowActions expense={expense} />
+            <RowActions expense={expense} onEdit={() => setOpenEdit(true)} />
 
             <ExpenseDialog mode="edit" expense={expense} open={openEdit} onOpenChange={setOpenEdit} />
         </div>

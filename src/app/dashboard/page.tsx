@@ -99,8 +99,12 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
     const expenseRows: ExpenseRow[] = expenses
     const pendingExpenses = expenseRows.filter((expense) => expense.status === "PLANNED")
     const paidExpenses = expenseRows.filter((expense) => expense.status === "PAID")
+    // totalExpense (getMonthFinanceSnapshot) exclui de propósito as despesas PAID via
+    // CREDIT_CARD — esse consumo já entra pelo valor da fatura em card_month_balances,
+    // não pela despesa individual (senão contaria duas vezes). "Já pago" tem que usar o
+    // mesmo filtro, senão "Falta pagar" subtrai um valor que totalExpense nunca incluiu.
     const jaPago = paidExpenses
-        .filter((expense) => !expense.is_excluded)
+        .filter((expense) => expense.payment_method !== "CREDIT_CARD" && !expense.is_excluded)
         .reduce((acc, expense) => acc + expense.amount, 0)
     const aPagar = totalExpense - jaPago
 
