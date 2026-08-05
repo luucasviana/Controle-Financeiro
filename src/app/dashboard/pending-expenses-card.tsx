@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { InfoPopover } from "@/components/ui/info-popover"
 import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import {
@@ -306,7 +307,24 @@ export function PendingExpensesCard({
         <Surface className="flex flex-col">
             <div className="flex items-center gap-3 border-b border-app-hairline p-4">
                 <div>
-                    <div className="text-[13px] font-medium text-app-ink">A pagar em {month.name}</div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[13px] font-medium text-app-ink">A pagar em {month.name}</span>
+                        <InfoPopover title={`A pagar em ${month.name}`}>
+                            <div className="space-y-1.5">
+                                <p className="font-medium text-app-ink">A pagar em {month.name}</p>
+                                <p>
+                                    As despesas ainda não pagas, da mais próxima de vencer para a mais distante.
+                                </p>
+                                <p>
+                                    O total soma todas, inclusive as marcadas como{" "}
+                                    <span className="text-app-ink">&quot;fora do cálculo&quot;</span> — a conta
+                                    continua chegando, mesmo que você tenha escolhido não contá-la no orçamento. É
+                                    por isso que esse total pode ser diferente do &quot;Falta pagar&quot; ali em
+                                    cima.
+                                </p>
+                            </div>
+                        </InfoPopover>
+                    </div>
                     <div className="text-app-muted">
                         {pending.length} {pending.length === 1 ? "despesa" : "despesas"} · {formatCurrency(pendingTotal)}
                     </div>

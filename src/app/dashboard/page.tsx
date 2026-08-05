@@ -1,6 +1,5 @@
 import { format } from "date-fns"
 import Link from "next/link"
-import { Info } from "lucide-react"
 
 import { getCardBalancesByMonth, getCards } from "@/app/actions/cards"
 import { getDashboardData, getMetricsForMonths, getWaterfallData } from "@/app/actions/finance"
@@ -9,6 +8,7 @@ import { getIncomeEditorRows } from "@/app/actions/month-incomes"
 import { getProjection } from "@/app/actions/projection"
 import { getPaymentSuggestions } from "@/app/actions/recurring-expenses"
 import { Button } from "@/components/ui/button"
+import { InfoPopover } from "@/components/ui/info-popover"
 import { StatStrip } from "@/components/ui/stat-strip"
 import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
@@ -116,6 +116,13 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
     // exibir "Falta pagar" negativo nesse cenário de inconsistência de dados.
     const aPagar = Math.max(0, totalExpense - jaPago)
 
+    // Reaproveita a mesma busca usada pelo card de Receitas (getIncomeSources) — sem
+    // consulta nova. Alimenta a ressalva do popover de "Sobra projetada": o número
+    // grande do card usa a receita total (incluindo fontes ocultas), enquanto a
+    // linha "Receita" logo abaixo mostra só a visível. Só vale a pena avisar disso
+    // quando existe de fato uma fonte oculta e ativa — senão os dois valores batem.
+    const hasHiddenActiveIncomeSource = incomeSources.some((source) => source.is_hidden && source.is_active)
+
     const sourceById = new Map(incomeSources.map((source) => [source.id, source]))
     const incomeRows: IncomeSourceOverviewRow[] = incomeEditorRows.map((row) => {
         const source = sourceById.get(row.source_id)
@@ -158,9 +165,28 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                                 <span className="text-[10px] uppercase tracking-wider text-app-accent">
                                     Sobra projetada do período
                                 </span>
-                                <span title="Pode incluir receitas de fontes ocultas" className="cursor-help">
-                                    <Info className="h-3.5 w-3.5 text-app-faint" />
-                                </span>
+                                <InfoPopover title="Sobra projetada do período">
+                                    <div className="space-y-1.5">
+                                        <p className="font-medium text-app-ink">Sobra projetada do período</p>
+                                        <p>
+                                            Quanto sobra da receita depois de pagar tudo que está previsto para o
+                                            período: a receita menos as despesas (previstas e pagas), já contando o
+                                            valor das faturas dos cartões.
+                                        </p>
+                                        <p>
+                                            Exemplo: receita de <span className="text-app-ink">R$ 5.950</span> e
+                                            despesas de <span className="text-app-ink">R$ 5.610</span> deixam uma
+                                            sobra de <span className="text-app-ink">R$ 340</span>.
+                                        </p>
+                                        {hasHiddenActiveIncomeSource && (
+                                            <p>
+                                                Esse valor considera também as receitas de fontes ocultas. A
+                                                &quot;Receita&quot; mostrada logo abaixo é só a visível — por isso os
+                                                dois números podem ser diferentes.
+                                            </p>
+                                        )}
+                                    </div>
+                                </InfoPopover>
                             </div>
                             <Tag tone={isBalancePositive ? "positive" : "negative"}>
                                 {isBalancePositive ? "No azul" : "No vermelho"}
@@ -191,7 +217,22 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                     </Surface>
 
                     <Surface className="p-6">
-                        <div className="text-[13px] font-medium text-app-ink">Composição do período</div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[13px] font-medium text-app-ink">Composição do período</span>
+                            <InfoPopover title="Composição do período">
+                                <div className="space-y-1.5">
+                                    <p className="font-medium text-app-ink">Composição do período</p>
+                                    <p>
+                                        Como se divide o dinheiro que já saiu: o que foi pago à vista mais o valor
+                                        das faturas de cartão informadas.
+                                    </p>
+                                    <p>
+                                        Despesas ainda previstas não entram aqui — por isso essa soma costuma ser
+                                        menor que o total de despesas do período.
+                                    </p>
+                                </div>
+                            </InfoPopover>
+                        </div>
                         <p className="mt-1 mb-4 text-app-muted">
                             O que já saiu até agora — à vista e fatura dos cartões, sem incluir despesas previstas
                         </p>
@@ -225,7 +266,18 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
 
                     <Surface className="p-6">
                         <div className="mb-4 flex items-center justify-between gap-2">
-                            <span className="text-[13px] font-medium text-app-ink">Cartões</span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[13px] font-medium text-app-ink">Cartões</span>
+                                <InfoPopover title="Cartões">
+                                    <div className="space-y-1.5">
+                                        <p className="font-medium text-app-ink">Cartões</p>
+                                        <p>
+                                            Quanto de cada cartão já foi comprometido no período, segundo o valor
+                                            da fatura que você informou. A barra mostra a fração do limite usada.
+                                        </p>
+                                    </div>
+                                </InfoPopover>
+                            </div>
                             <Link href="/dashboard/cards" className="text-app-accent hover:underline">
                                 Ver todos
                             </Link>
@@ -243,7 +295,22 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                 <div className="flex flex-col gap-4">
                     <Surface className="p-6">
                         <div>
-                            <div className="text-[13px] font-medium text-app-ink">Comparativo mensal</div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[13px] font-medium text-app-ink">Comparativo mensal</span>
+                                <InfoPopover title="Comparativo mensal">
+                                    <div className="space-y-1.5">
+                                        <p className="font-medium text-app-ink">Comparativo mensal</p>
+                                        <p>
+                                            Receita e despesa realizadas em cada período, para acompanhar a
+                                            evolução.
+                                        </p>
+                                        <p>
+                                            Uma barra de despesa destacada indica um período em que se gastou mais
+                                            do que se recebeu.
+                                        </p>
+                                    </div>
+                                </InfoPopover>
+                            </div>
                             <p className="text-app-muted">Receita e despesa realizadas por período</p>
                         </div>
                         {historyMetrics.length > 0 ? (
@@ -269,7 +336,22 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                 <div className="flex flex-col gap-4">
                     <Surface className="p-6">
                         <div className="mb-1 flex items-center justify-between gap-2">
-                            <span className="text-[13px] font-medium text-app-ink">Próximos períodos</span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[13px] font-medium text-app-ink">Próximos períodos</span>
+                                <InfoPopover title="Próximos períodos">
+                                    <div className="space-y-1.5">
+                                        <p className="font-medium text-app-ink">Próximos períodos</p>
+                                        <p>
+                                            A sobra projetada de cada período daqui em diante: receita menos as
+                                            despesas já lançadas e as recorrências que ainda serão lançadas.
+                                        </p>
+                                        <p>
+                                            Não inclui faturas de cartão, porque períodos futuros ainda não têm
+                                            fatura informada.
+                                        </p>
+                                    </div>
+                                </InfoPopover>
+                            </div>
                             <Link href="/dashboard/projection" className="text-app-accent hover:underline">
                                 Planejar
                             </Link>

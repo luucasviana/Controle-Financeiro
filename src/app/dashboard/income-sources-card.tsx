@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Edit, MoreHorizontal, Power, Trash2, Wallet } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { InfoPopover } from "@/components/ui/info-popover"
 import { Surface } from "@/components/ui/surface"
 import { Tag } from "@/components/ui/tag"
 import {
@@ -91,7 +92,18 @@ export function IncomeSourcesCard({
     return (
         <Surface className="p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
-                <span className="text-[13px] font-medium text-app-ink">Receitas</span>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[13px] font-medium text-app-ink">Receitas</span>
+                    <InfoPopover title="Receitas">
+                        <div className="space-y-1.5">
+                            <p className="font-medium text-app-ink">Receitas</p>
+                            <p>
+                                As fontes de receita deste período e quanto cada uma trouxe. Os valores são por
+                                período: alterar um valor aqui não muda os períodos anteriores.
+                            </p>
+                        </div>
+                    </InfoPopover>
+                </div>
                 <Link href="/dashboard/incomes" className="text-app-accent hover:underline">
                     Gerenciar fontes
                 </Link>
