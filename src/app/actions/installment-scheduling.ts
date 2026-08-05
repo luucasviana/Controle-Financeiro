@@ -1,4 +1,7 @@
-import type { MonthData } from "./months"
+export type SchedulingMonth = {
+    id: string
+    start_date: string
+}
 
 export type InstallmentPlanRow = {
     id: string
@@ -33,7 +36,7 @@ export type InstallmentExpenseInsert = {
     installment_total: number
 }
 
-export function getMonthDueDate(month: MonthData, dueDay: number) {
+export function getMonthDueDate(month: SchedulingMonth, dueDay: number) {
     const start = new Date(`${month.start_date}T00:00:00`)
     const year = start.getFullYear()
     const monthIndex = start.getMonth() + 1
@@ -44,7 +47,7 @@ export function getMonthDueDate(month: MonthData, dueDay: number) {
 }
 
 export function buildInstallmentRowsToInsert(
-    months: MonthData[],
+    months: SchedulingMonth[],
     plans: InstallmentPlanRow[],
     existingInstallments: InstallmentExpenseRow[]
 ) {
