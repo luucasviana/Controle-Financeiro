@@ -277,6 +277,8 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
                         pending={pendingExpenses}
                         paid={paidExpenses}
                         cardsMap={cardsMap}
+                        cards={cardsList}
+                        projectedBalance={projectedBalance}
                         todayIso={todayIso}
                     />
                 </div>

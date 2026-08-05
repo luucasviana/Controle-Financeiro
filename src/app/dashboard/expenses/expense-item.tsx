@@ -1,90 +1,112 @@
 "use client"
 
-import { formatCurrency } from "@/lib/utils"
-import { CheckCircle2, Circle, CreditCard, Calculator } from "lucide-react"
-import { ExpenseActions } from "./expense-actions"
-import { Expense } from "./columns"
-import { format } from "date-fns"
-import { Badge } from "@/components/ui/badge"
-import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
+import { format, parseISO } from "date-fns"
+import { Calculator } from "lucide-react"
 
-const paymentMethodsMap: Record<string, string> = {
+import { Tag } from "@/components/ui/tag"
+import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
+import type { MonthData } from "@/app/actions/months"
+import { cn, formatCurrency } from "@/lib/utils"
+import { ExpenseActions } from "./expense-actions"
+import { PayPopover } from "./pay-popover"
+import type { Expense } from "./columns"
+
+type CardOption = { id: string; name: string }
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
     PIX: "Pix",
     DEBIT: "Débito",
     CASH: "Dinheiro",
-    CREDIT_CARD: "Cartão de Crédito",
-    NONE: "Nenhum"
+    CREDIT_CARD: "Cartão de crédito",
+    NONE: "",
 }
 
-export function ExpenseItem({ expense, cardsMap }: { expense: Expense, cardsMap?: Record<string, string> }) {
+function buildFormaLabel(expense: Expense, cardsMap: Record<string, string>) {
+    if (expense.status !== "PAID") return "—"
+
+    const methodLabel = PAYMENT_METHOD_LABELS[expense.payment_method] || expense.payment_method
+    const cardName = expense.card_id ? cardsMap[expense.card_id] : null
+
+    if (expense.payment_method === "CREDIT_CARD" && cardName) {
+        return `${methodLabel} · ${cardName}`
+    }
+
+    return methodLabel
+}
+
+export function ExpenseItem({
+    expense,
+    cardsMap,
+    cards,
+    month,
+    projectedBalance,
+    todayIso,
+}: {
+    expense: Expense
+    cardsMap: Record<string, string>
+    cards: CardOption[]
+    month: MonthData
+    projectedBalance: number
+    todayIso: string
+}) {
     const { hiddenModeEnabled } = useHiddenMode()
-    const isPaid = expense.status === 'PAID'
-
-    // Visual indicators only shown when hidden mode is active
+    const isPaid = expense.status === "PAID"
     const excludedVisual = hiddenModeEnabled && expense.is_excluded
+    // Comparação só de data (due_date é "yyyy-MM-dd"), sem hora — senão uma
+    // despesa que vence hoje seria marcada como atrasada.
+    const isOverdue = !isPaid && expense.due_date < todayIso
 
-    const Icon = isPaid ? CheckCircle2 : Circle
+    const dueLabel = format(parseISO(expense.due_date), "dd/MM")
+    const formaLabel = buildFormaLabel(expense, cardsMap)
 
-    const paidDate = expense.paid_at ? new Date(expense.paid_at) : null
-    const paidDateStr = paidDate ? format(paidDate, "dd/MM/yyyy") : ''
-
-    const methodStr = paymentMethodsMap[expense.payment_method] || expense.payment_method
-    const cardName = expense.card_id && cardsMap ? cardsMap[expense.card_id] : null
+    const occurrenceLabel = expense.recurring_expense_id
+        ? expense.occurrence_total
+            ? `${expense.occurrence_number}/${expense.occurrence_total}`
+            : "Recorrente"
+        : null
 
     return (
-        <div className={`flex flex-col p-4 bg-white rounded-lg shadow-sm hover:bg-slate-50 transition-colors ${excludedVisual ? 'border border-dashed border-slate-400' : 'border'}`}>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`h-5 w-5 shrink-0 ${isPaid ? 'text-green-500' : 'text-slate-300'}`} />
-                    <div className="flex min-w-0 items-center gap-2">
-                        <span className="font-medium text-slate-800 truncate">
-                            {expense.description}
-                        </span>
-                        {expense.installment_plan_id && expense.installment_number && expense.installment_total && (
-                            <Badge variant="outline" className="text-[10px] shrink-0">
-                                Parcela {expense.installment_number}/{expense.installment_total}
-                            </Badge>
-                        )}
-                    </div>
+        <div
+            className={cn(
+                "flex items-center gap-3 rounded-control px-2 py-2.5 hover:bg-app-hairline",
+                isPaid && "opacity-55 hover:opacity-100"
+            )}
+        >
+            <PayPopover expense={expense} cards={cards} />
+
+            <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className={cn("truncate text-app-ink", isPaid && "line-through")}>
+                        {expense.description}
+                    </span>
+                    {occurrenceLabel && (
+                        <Tag tone="neutral" className="shrink-0">
+                            {occurrenceLabel}
+                        </Tag>
+                    )}
                     {excludedVisual && (
-                        <Badge variant="secondary" className="text-[10px] shrink-0 flex items-center gap-1 text-slate-500">
-                            <Calculator className="h-3 w-3" />
-                            Fora do cálculo
-                        </Badge>
+                        <Tag tone="warn" className="shrink-0 gap-1">
+                            <Calculator className="h-3 w-3" /> Fora do cálculo
+                        </Tag>
                     )}
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                    {!isPaid && (
-                        <span className="font-semibold text-red-500">
-                            {formatCurrency(expense.amount)}
-                        </span>
-                    )}
-                    <ExpenseActions expense={expense} />
                 </div>
             </div>
 
-            {isPaid && (
-                <div className="mt-2 ml-8 flex items-center flex-wrap gap-2 text-sm text-slate-500">
-                    <span className="font-medium text-slate-700">{formatCurrency(expense.amount)}</span>
-                    <span className="text-slate-300">•</span>
-                    <span>{methodStr}</span>
-                    {expense.payment_method === 'CREDIT_CARD' && cardName && (
-                        <>
-                            <span className="text-slate-300">•</span>
-                            <span className="flex items-center gap-1">
-                                <CreditCard className="h-4 w-4" />
-                                {cardName}
-                            </span>
-                        </>
-                    )}
-                    {paidDateStr && (
-                        <>
-                            <span className="text-slate-300">•</span>
-                            <span>Pago em {paidDateStr}</span>
-                        </>
-                    )}
-                </div>
-            )}
+            <span className="w-[150px] shrink-0 truncate text-app-muted">{formaLabel}</span>
+
+            <span className="w-[76px] shrink-0">
+                {isOverdue ? (
+                    <Tag tone="negative">venceu {dueLabel}</Tag>
+                ) : (
+                    <span className="text-app-muted">{dueLabel}</span>
+                )}
+            </span>
+
+            <span className="w-[104px] shrink-0 text-right font-medium tabular-nums text-app-ink">
+                {formatCurrency(expense.amount)}
+            </span>
+
+            <ExpenseActions expense={expense} month={month} projectedBalance={projectedBalance} />
         </div>
     )
 }

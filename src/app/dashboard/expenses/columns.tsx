@@ -7,19 +7,19 @@ import { ExpenseActions } from "./expense-actions"
 
 export type Expense = {
     id: string
+    user_id: string
+    month_id: string
+    due_date: string
     description: string
     amount: number
-    due_date: string
     status: 'PLANNED' | 'PAID'
-    payment_method: string
+    payment_method: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
     card_id: string | null
-    template_id: string | null
-    installment_plan_id: string | null
-    installment_number: number | null
-    installment_total: number | null
+    recurring_expense_id: string | null
+    occurrence_number: number | null
+    occurrence_total: number | null
     paid_at: string | null
     is_excluded: boolean
-    month_id: string
     created_at: string
 }
 

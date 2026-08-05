@@ -78,14 +78,24 @@ export function ExpensesPageSkeleton() {
     return (
         <div className="flex-1 space-y-6">
             <PageHeaderSkeleton />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+                {Array.from({ length: 2 }).map((_, index) => (
+                    <Surface key={index} className="px-5 py-4">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="mt-3 h-7 w-32" />
+                    </Surface>
+                ))}
+            </div>
+
             <Card>
                 <CardContent className="space-y-4 p-6">
                     <div className="flex items-center justify-between gap-4">
                         <Skeleton className="h-10 w-72 max-w-full" />
                         <Skeleton className="h-10 w-36" />
                     </div>
-                    {Array.from({ length: 6 }).map((_, index) => (
-                        <Skeleton key={index} className="h-20 w-full" />
+                    {Array.from({ length: 8 }).map((_, index) => (
+                        <Skeleton key={index} className="h-10 w-full" />
                     ))}
                 </CardContent>
             </Card>

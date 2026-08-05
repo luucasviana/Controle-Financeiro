@@ -4,8 +4,6 @@ import { useState } from "react"
 import { format, parseISO } from "date-fns"
 import {
     Calculator,
-    CheckCircle2,
-    Circle,
     Copy,
     MoreHorizontal,
     Pencil,
@@ -29,8 +27,10 @@ import type { Database } from "@/lib/database.types"
 import { cn, formatCurrency } from "@/lib/utils"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
 import { ExpenseDialog } from "./expenses/expense-dialog"
+import { PayPopover } from "./expenses/pay-popover"
 
 type ExpenseRow = Database["public"]["Tables"]["month_expenses"]["Row"]
+type CardRow = Database["public"]["Tables"]["cards"]["Row"]
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
     PIX: "Pix",
@@ -60,9 +60,13 @@ function buildMeta(expense: ExpenseRow, cardsMap: Record<string, string>) {
 function RowActions({
     expense,
     onEdit,
+    month,
+    projectedBalance,
 }: {
     expense: ExpenseRow
     onEdit: () => void
+    month: MonthData
+    projectedBalance: number
 }) {
     const [openDuplicate, setOpenDuplicate] = useState(false)
 
@@ -102,7 +106,14 @@ function RowActions({
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <ExpenseDialog mode="duplicate" expense={expense} open={openDuplicate} onOpenChange={setOpenDuplicate} />
+            <ExpenseDialog
+                mode="duplicate"
+                expense={expense}
+                month={month}
+                projectedBalance={projectedBalance}
+                open={openDuplicate}
+                onOpenChange={setOpenDuplicate}
+            />
         </>
     )
 }
@@ -110,10 +121,16 @@ function RowActions({
 function ExpenseRowItem({
     expense,
     cardsMap,
+    cards,
+    month,
+    projectedBalance,
     todayIso,
 }: {
     expense: ExpenseRow
     cardsMap: Record<string, string>
+    cards: CardRow[]
+    month: MonthData
+    projectedBalance: number
     todayIso: string
 }) {
     const { hiddenModeEnabled } = useHiddenMode()
@@ -132,14 +149,7 @@ function ExpenseRowItem({
                 isPaid && "opacity-55 hover:opacity-100"
             )}
         >
-            <button
-                type="button"
-                onClick={() => setOpenEdit(true)}
-                title={isPaid ? "Editar despesa paga" : "Marcar como paga"}
-                className="shrink-0 text-app-faint hover:text-app-accent"
-            >
-                {isPaid ? <CheckCircle2 className="h-5 w-5 text-app-muted" /> : <Circle className="h-5 w-5" />}
-            </button>
+            <PayPopover expense={expense} cards={cards} />
 
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -165,9 +175,21 @@ function ExpenseRowItem({
                 {formatCurrency(expense.amount)}
             </span>
 
-            <RowActions expense={expense} onEdit={() => setOpenEdit(true)} />
+            <RowActions
+                expense={expense}
+                onEdit={() => setOpenEdit(true)}
+                month={month}
+                projectedBalance={projectedBalance}
+            />
 
-            <ExpenseDialog mode="edit" expense={expense} open={openEdit} onOpenChange={setOpenEdit} />
+            <ExpenseDialog
+                mode="edit"
+                expense={expense}
+                month={month}
+                projectedBalance={projectedBalance}
+                open={openEdit}
+                onOpenChange={setOpenEdit}
+            />
         </div>
     )
 }
@@ -177,18 +199,24 @@ export function PendingExpensesCard({
     pending,
     paid,
     cardsMap,
+    cards,
+    projectedBalance,
     todayIso,
 }: {
     month: MonthData
     pending: ExpenseRow[]
     paid: ExpenseRow[]
     cardsMap: Record<string, string>
+    cards: CardRow[]
+    projectedBalance: number
     todayIso: string
 }) {
     const [showPaid, setShowPaid] = useState(false)
 
     const pendingTotal = pending.reduce((acc, expense) => acc + expense.amount, 0)
     const paidTotal = paid.reduce((acc, expense) => acc + expense.amount, 0)
+
+    const rowProps = { cardsMap, cards, month, projectedBalance, todayIso }
 
     return (
         <Surface className="flex flex-col">
@@ -202,6 +230,7 @@ export function PendingExpensesCard({
                 <div className="flex-1" />
                 <ExpenseDialog
                     month={month}
+                    projectedBalance={projectedBalance}
                     trigger={
                         <Button variant="secondary" size="sm">
                             <Plus className="h-4 w-4" />
@@ -213,7 +242,7 @@ export function PendingExpensesCard({
 
             <div className="flex flex-col gap-1 p-2">
                 {pending.map((expense) => (
-                    <ExpenseRowItem key={expense.id} expense={expense} cardsMap={cardsMap} todayIso={todayIso} />
+                    <ExpenseRowItem key={expense.id} expense={expense} {...rowProps} />
                 ))}
                 {pending.length === 0 && (
                     <p className="py-8 text-center text-app-muted">Nenhuma despesa prevista para este período.</p>
@@ -232,7 +261,7 @@ export function PendingExpensesCard({
 
                 {showPaid &&
                     paid.map((expense) => (
-                        <ExpenseRowItem key={expense.id} expense={expense} cardsMap={cardsMap} todayIso={todayIso} />
+                        <ExpenseRowItem key={expense.id} expense={expense} {...rowProps} />
                     ))}
             </div>
         </Surface>

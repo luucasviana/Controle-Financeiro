@@ -2,14 +2,24 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Edit, Trash2, Copy } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MoreHorizontal, Pencil, Trash2, Copy } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ExpenseDialog } from "./expense-dialog"
 import { deleteMonthExpense } from "@/app/actions/finance"
 import { toast } from "sonner"
-import { Expense } from "./columns"
+import type { MonthData } from "@/app/actions/months"
+import type { Expense } from "./columns"
 
-export function ExpenseActions({ expense }: { expense: Expense }) {
+export function ExpenseActions({
+    expense,
+    month,
+    projectedBalance,
+}: {
+    expense: Expense
+    /** Período atualmente exibido — repassado ao ExpenseDialog para a prévia de sobra. */
+    month?: MonthData
+    projectedBalance?: number
+}) {
     const [openEdit, setOpenEdit] = useState(false)
     const [openDuplicate, setOpenDuplicate] = useState(false)
 
@@ -18,8 +28,8 @@ export function ExpenseActions({ expense }: { expense: Expense }) {
             try {
                 await deleteMonthExpense(expense.id)
                 toast.success("Despesa excluída com sucesso!")
-            } catch (e: any) {
-                toast.error(e.message)
+            } catch (error: unknown) {
+                toast.error(error instanceof Error ? error.message : "Não foi possível excluir.")
             }
         }
     }
@@ -28,24 +38,23 @@ export function ExpenseActions({ expense }: { expense: Expense }) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
+                    <Button variant="ghost" size="icon-sm" className="shrink-0">
                         <span className="sr-only">Abrir menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-                        <Edit className="mr-2 h-4 w-4 text-blue-500" />
+                        <Pencil className="h-4 w-4" />
                         Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setOpenDuplicate(true)}>
-                        <Copy className="mr-2 h-4 w-4 text-emerald-500" />
+                        <Copy className="h-4 w-4" />
                         Duplicar
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDelete}>
-                        <Trash2 className="mr-2 h-4 w-4 text-red-500" />
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onClick={handleDelete}>
+                        <Trash2 className="h-4 w-4" />
                         Excluir
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -54,6 +63,8 @@ export function ExpenseActions({ expense }: { expense: Expense }) {
             <ExpenseDialog
                 mode="edit"
                 expense={expense}
+                month={month}
+                projectedBalance={projectedBalance}
                 open={openEdit}
                 onOpenChange={setOpenEdit}
             />
@@ -61,6 +72,8 @@ export function ExpenseActions({ expense }: { expense: Expense }) {
             <ExpenseDialog
                 mode="duplicate"
                 expense={expense}
+                month={month}
+                projectedBalance={projectedBalance}
                 open={openDuplicate}
                 onOpenChange={setOpenDuplicate}
             />

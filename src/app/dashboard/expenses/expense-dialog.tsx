@@ -1,6 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { format } from "date-fns"
+import { Calculator } from "lucide-react"
+import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -12,17 +16,27 @@ import {
 import { Input } from "@/components/ui/input"
 import { CurrencyInput } from "@/components/ui/currency-input"
 import { Label } from "@/components/ui/label"
+import { Segmented } from "@/components/ui/segmented"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tag } from "@/components/ui/tag"
 import { createMonthExpense, updateMonthExpense } from "@/app/actions/finance"
 import { getCards } from "@/app/actions/cards"
-import { toast } from "sonner"
-import { MonthData } from "@/app/actions/months"
-import { format } from "date-fns"
+import type { MonthData } from "@/app/actions/months"
 import { useHiddenMode } from "@/components/providers/hidden-mode-provider"
-import { Calculator } from "lucide-react"
+import { cn, formatCurrency } from "@/lib/utils"
+import type { Expense } from "./columns"
+
+type CardOption = { id: string; name: string }
+type PaymentMethod = "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
+type Status = "PLANNED" | "PAID"
+
+function isIncludedInTotals(status: Status, paymentMethod: PaymentMethod, isExcluded: boolean) {
+    return !(status === "PAID" && paymentMethod === "CREDIT_CARD") && !isExcluded
+}
 
 export function ExpenseDialog({
     month,
+    projectedBalance,
     mode = "create",
     expense,
     open: externalOpen,
@@ -30,8 +44,10 @@ export function ExpenseDialog({
     trigger,
 }: {
     month?: MonthData
+    /** Saldo projetado do período `month`, hoje — base para o preview de sobra. */
+    projectedBalance?: number
     mode?: "create" | "edit" | "duplicate"
-    expense?: any
+    expense?: Expense
     open?: boolean
     onOpenChange?: (open: boolean) => void
     trigger?: React.ReactNode
@@ -47,7 +63,7 @@ export function ExpenseDialog({
 
     const { hiddenModeEnabled } = useHiddenMode()
 
-    const [cards, setCards] = useState<any[]>([])
+    const [cards, setCards] = useState<CardOption[]>([])
     const [months, setMonths] = useState<MonthData[]>([])
 
     const isDuplicate = mode === "duplicate"
@@ -58,12 +74,12 @@ export function ExpenseDialog({
     const [description, setDescription] = useState("")
     const [amountValue, setAmountValue] = useState<number | undefined>(undefined)
 
-    const [paymentMethod, setPaymentMethod] = useState("NONE")
-    const [status, setStatus] = useState<"PLANNED" | "PAID">("PLANNED")
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("NONE")
+    const [status, setStatus] = useState<Status>("PLANNED")
     const [paidAt, setPaidAt] = useState("")
     const [dueDate, setDueDate] = useState("")
     const [cardId, setCardId] = useState("")
-    const [keepTemplate, setKeepTemplate] = useState(false)
+    const [keepRecurringLink, setKeepRecurringLink] = useState(false)
     const [isExcluded, setIsExcluded] = useState(false)
 
     const [loading, setLoading] = useState(false)
@@ -84,7 +100,7 @@ export function ExpenseDialog({
             )
             setDueDate(expense.due_date || format(new Date(), "yyyy-MM-dd"))
             setCardId(expense.card_id || "")
-            setKeepTemplate(false)
+            setKeepRecurringLink(false)
             setIsExcluded(!!expense.is_excluded)
         } else {
             setSelectedMonthId(month ? month.id : "")
@@ -104,14 +120,14 @@ export function ExpenseDialog({
         )
     }, [open, month, expense, isDuplicate, isEdit, initialMonthId])
 
-    function handleStatusChange(newStatus: "PLANNED" | "PAID") {
+    function handleStatusChange(newStatus: Status) {
         setStatus(newStatus)
         if (newStatus === "PLANNED") {
             setPaymentMethod("NONE")
             setPaidAt("")
             setCardId("")
         } else {
-            setPaymentMethod(paymentMethod === "NONE" ? "" : paymentMethod)
+            setPaymentMethod((current) => (current === "NONE" ? "PIX" : current))
             setPaidAt(format(new Date(), "yyyy-MM-dd"))
         }
     }
@@ -122,7 +138,7 @@ export function ExpenseDialog({
 
         const targetMonth = months.find((m) => m.id === newMonthId)
         if (targetMonth) {
-            const [, oMonth, oDay] = expense.due_date.split("-").map(Number)
+            const [, , oDay] = expense.due_date.split("-").map(Number)
             const [tYear, tMonth] = targetMonth.start_date.split("-").map(Number)
 
             const daysInTargetMonth = new Date(tYear, tMonth, 0).getDate()
@@ -146,8 +162,8 @@ export function ExpenseDialog({
             formData.append("card_id", cardId)
         }
 
-        if (isDuplicate && keepTemplate && expense?.template_id) {
-            formData.append("template_id", expense.template_id)
+        if (isDuplicate && keepRecurringLink && expense?.recurring_expense_id) {
+            formData.append("recurring_expense_id", expense.recurring_expense_id)
         }
 
         formData.append("hidden_mode_enabled", String(hiddenModeEnabled))
@@ -156,7 +172,7 @@ export function ExpenseDialog({
         }
 
         try {
-            if (isEdit) {
+            if (isEdit && expense) {
                 formData.append("expense_id", expense.id)
                 await updateMonthExpense(formData)
                 toast.success("Despesa atualizada com sucesso!")
@@ -174,61 +190,77 @@ export function ExpenseDialog({
                 }
             }
             setOpen(false)
-        } catch (e: any) {
-            toast.error(e.message)
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : "Não foi possível salvar a despesa.")
         } finally {
             setLoading(false)
         }
     }
 
-    const submitLabel = isEdit ? "Salvar Alterações" : isDuplicate ? "Duplicar" : "Salvar"
-    const titleLabel = isEdit ? "Editar Despesa" : isDuplicate ? "Duplicar Despesa" : "Registrar Despesa"
+    const submitLabel = isEdit ? "Salvar alterações" : isDuplicate ? "Duplicar" : "Salvar"
+    const titleLabel = isEdit ? "Editar despesa" : isDuplicate ? "Duplicar despesa" : "Nova despesa"
+
+    // Prévia de sobra: recalcula o saldo projetado do período `month` levando em
+    // conta este lançamento. Só faz sentido quando conhecemos o saldo atual desse
+    // período e o lançamento (editado, criado ou duplicado) está indo para ele —
+    // duplicar para outro período não muda a sobra do período atual.
+    const targetsKnownMonth = !!month && selectedMonthId === month.id
+    const currentAmount = amountValue ?? 0
+    const newIncluded = targetsKnownMonth && isIncludedInTotals(status, paymentMethod, isExcluded)
+    const newContribution = newIncluded ? currentAmount : 0
+
+    const originalIncluded =
+        isEdit &&
+        !!expense &&
+        !!month &&
+        expense.month_id === month.id &&
+        isIncludedInTotals(expense.status, expense.payment_method, expense.is_excluded)
+    const originalContribution = originalIncluded ? expense!.amount : 0
+
+    const previewAvailable = typeof projectedBalance === "number" && !!month
+    const previewBalance = previewAvailable
+        ? (projectedBalance as number) + originalContribution - newContribution
+        : 0
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             {!isControlled && (
                 <DialogTrigger asChild>
-                    {trigger ? trigger : <Button className="bg-blue-600">Nova Despesa</Button>}
+                    {trigger ? trigger : <Button>Nova despesa</Button>}
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>{titleLabel}</DialogTitle>
                 </DialogHeader>
-                <form action={onSubmit} className="grid grid-cols-2 gap-4">
-                    {isDuplicate && (
-                        <div className="col-span-2 space-y-2 rounded-lg border bg-slate-50 p-3">
-                            <Label htmlFor="month_id" className="font-semibold text-blue-600">
-                                Mês de Destino
-                            </Label>
+                <form action={onSubmit} className="space-y-4">
+                    {isDuplicate ? (
+                        <div className="space-y-2">
+                            <Label htmlFor="month_id">Período de destino</Label>
                             <Select value={selectedMonthId} onValueChange={handleMonthChange}>
-                                <SelectTrigger className="bg-white">
-                                    <SelectValue placeholder="Selecione o mês" />
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione o período" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {months.map((m) => (
                                         <SelectItem key={m.id} value={m.id}>
                                             <div className="flex items-center gap-2">
                                                 <span>{m.name}</span>
-                                                <span
-                                                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${m.status === "OPEN" ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-600"}`}
-                                                >
-                                                    {m.status === "OPEN" ? "OPEN" : "CLOSED"}
-                                                </span>
+                                                <Tag tone={m.status === "OPEN" ? "positive" : "neutral"}>
+                                                    {m.status === "OPEN" ? "Aberto" : "Encerrado"}
+                                                </Tag>
                                             </div>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                    )}
-
-                    {!isDuplicate && (
-                        <div className="col-span-2 space-y-2">
-                            <Label htmlFor="month_id">Mês de Referência</Label>
+                    ) : (
+                        <div className="space-y-2">
+                            <Label htmlFor="month_id">Período de referência</Label>
                             <Select value={selectedMonthId} onValueChange={handleMonthChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o mês" />
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione o período" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {months.map((m) => (
@@ -241,7 +273,7 @@ export function ExpenseDialog({
                         </div>
                     )}
 
-                    <div className="col-span-2 space-y-2">
+                    <div className="space-y-2">
                         <Label htmlFor="description">Descrição</Label>
                         <Input
                             id="description"
@@ -253,48 +285,66 @@ export function ExpenseDialog({
                         />
                     </div>
 
-                    <div className="col-span-1 space-y-2">
-                        <Label htmlFor="amount">Valor</Label>
-                        <CurrencyInput
-                            id="amount"
-                            name="amount"
-                            required
-                            placeholder="R$ 0,00"
-                            key={`amt-${amountValue}`}
-                            defaultValue={amountValue}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="amount">Valor</Label>
+                            <CurrencyInput
+                                id="amount"
+                                name="amount"
+                                required
+                                placeholder="R$ 0,00"
+                                key={`amt-${expense?.id ?? "new"}-${open}`}
+                                defaultValue={amountValue}
+                                onValueChange={setAmountValue}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="due_date">Vencimento</Label>
+                            <Input
+                                id="due_date"
+                                name="due_date"
+                                type="date"
+                                required
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Status</Label>
+                        <Segmented
+                            options={[
+                                { value: "PLANNED", label: "Prevista" },
+                                { value: "PAID", label: "Paga" },
+                            ]}
+                            value={status}
+                            onChange={handleStatusChange}
                         />
                     </div>
 
-                    <div className="col-span-1 space-y-2">
-                        <Label htmlFor="due_date">Data de Vencimento</Label>
-                        <Input
-                            id="due_date"
-                            name="due_date"
-                            type="date"
-                            required
-                            value={dueDate}
-                            onChange={(e) => setDueDate(e.target.value)}
-                        />
-                    </div>
-
-                    {(isEdit ? status === "PAID" : status === "PAID") && (
-                        <>
-                            <div className="col-span-1 space-y-2">
-                                <Label htmlFor="payment_method">Método de Pagamento</Label>
-                                <Select required value={paymentMethod} onValueChange={setPaymentMethod}>
-                                    <SelectTrigger>
+                    {status === "PAID" && (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="payment_method_select">Método de pagamento</Label>
+                                <Select
+                                    value={paymentMethod === "NONE" ? "" : paymentMethod}
+                                    onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                                >
+                                    <SelectTrigger id="payment_method_select" className="w-full">
                                         <SelectValue placeholder="Selecione..." />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="PIX">Pix</SelectItem>
-                                        <SelectItem value="DEBIT">Cartão de Débito</SelectItem>
-                                        <SelectItem value="CASH">Dinheiro / À Vista</SelectItem>
-                                        <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                                        <SelectItem value="DEBIT">Débito</SelectItem>
+                                        <SelectItem value="CASH">Dinheiro</SelectItem>
+                                        <SelectItem value="CREDIT_CARD">Cartão de crédito</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
-                            <div className="col-span-1 space-y-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="paid_at">Pago em</Label>
                                 <Input
                                     id="paid_at"
@@ -306,10 +356,10 @@ export function ExpenseDialog({
                             </div>
 
                             {paymentMethod === "CREDIT_CARD" && (
-                                <div className="col-span-2 flex flex-col space-y-2">
-                                    <Label htmlFor="card_id">Cartão de Crédito</Label>
-                                    <Select required value={cardId} onValueChange={setCardId}>
-                                        <SelectTrigger>
+                                <div className="col-span-full space-y-2">
+                                    <Label htmlFor="card_id_select">Cartão de crédito</Label>
+                                    <Select value={cardId} onValueChange={setCardId}>
+                                        <SelectTrigger id="card_id_select" className="w-full">
                                             <SelectValue placeholder="Selecione o cartão..." />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -322,76 +372,73 @@ export function ExpenseDialog({
                                     </Select>
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
 
-                    <div className="col-span-2 space-y-2">
-                        <Label>Status</Label>
-                        <div className="flex rounded-lg bg-slate-100 p-1">
-                            <button
-                                type="button"
-                                onClick={() => handleStatusChange("PLANNED")}
-                                className={`flex-1 rounded-md py-1.5 text-sm transition-all ${status === "PLANNED" ? "bg-white font-medium text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                            >
-                                Prevista
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleStatusChange("PAID")}
-                                className={`flex-1 rounded-md py-1.5 text-sm transition-all ${status === "PAID" ? "bg-white font-medium text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                            >
-                                Paga
-                            </button>
-                        </div>
-                    </div>
-
-                    {isDuplicate && expense?.template_id && (
-                        <div className="col-span-2 mt-2 flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-800">
+                    {isDuplicate && expense?.recurring_expense_id && (
+                        <label className="flex cursor-pointer items-start gap-2.5 rounded-control border border-app-border bg-app-hairline px-3 py-2.5">
                             <input
                                 type="checkbox"
-                                id="keepTemplate"
-                                checked={keepTemplate}
-                                onChange={(e) => setKeepTemplate(e.target.checked)}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                checked={keepRecurringLink}
+                                onChange={(e) => setKeepRecurringLink(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-app-border accent-app-accent"
                             />
-                            <Label htmlFor="keepTemplate" className="cursor-pointer font-medium">
-                                Manter vínculo com o item fixo original
-                            </Label>
-                        </div>
+                            <span className="text-sm text-app-ink">
+                                Manter vínculo com a despesa recorrente original
+                            </span>
+                        </label>
                     )}
 
                     {hiddenModeEnabled && (
-                        <div className="col-span-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                        <div className="flex items-center gap-3 rounded-control border border-app-border bg-app-hairline px-3 py-2.5">
                             <button
                                 type="button"
                                 role="switch"
                                 aria-checked={isExcluded}
                                 onClick={() => setIsExcluded((value) => !value)}
-                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isExcluded ? "bg-slate-700" : "bg-slate-300"}`}
+                                className={cn(
+                                    "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+                                    isExcluded ? "bg-app-ink" : "bg-app-border"
+                                )}
                             >
                                 <span
-                                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isExcluded ? "translate-x-4" : "translate-x-0.5"}`}
+                                    className={cn(
+                                        "inline-block h-4 w-4 rounded-full bg-white shadow transition-transform",
+                                        isExcluded ? "translate-x-4" : "translate-x-0.5"
+                                    )}
                                 />
                             </button>
                             <div className="flex items-center gap-1.5">
-                                <Calculator className="h-4 w-4 text-slate-500" />
+                                <Calculator className="h-4 w-4 text-app-muted" />
                                 <div>
-                                    <Label className="cursor-pointer text-sm font-medium text-slate-700">
+                                    <Label className="cursor-pointer text-sm font-medium text-app-ink">
                                         Fora do cálculo
                                     </Label>
-                                    <p className="text-[11px] text-slate-500">
-                                        Aparece na lista, mas não entra nos totais do mês.
+                                    <p className="text-xs text-app-muted">
+                                        Aparece na lista, mas não entra nos totais do período.
                                     </p>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="col-span-2 mt-2">
-                        <Button type="submit" disabled={loading} className="w-full">
-                            {submitLabel}
-                        </Button>
-                    </div>
+                    {previewAvailable && (
+                        <div className="flex items-center justify-between gap-3 rounded-control border border-app-border px-3 py-2.5">
+                            <span className="text-app-muted">Sobra do período depois deste lançamento</span>
+                            <span
+                                className={cn(
+                                    "font-medium tabular-nums",
+                                    previewBalance >= 0 ? "text-app-ink" : "text-app-accent"
+                                )}
+                            >
+                                {formatCurrency(previewBalance)}
+                            </span>
+                        </div>
+                    )}
+
+                    <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? "Salvando..." : submitLabel}
+                    </Button>
                 </form>
             </DialogContent>
         </Dialog>

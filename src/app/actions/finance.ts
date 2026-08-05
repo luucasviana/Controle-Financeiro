@@ -282,7 +282,7 @@ export async function createMonthExpense(formData: FormData) {
     let payment_method = formData.get("payment_method") as "NONE" | "PIX" | "DEBIT" | "CASH" | "CREDIT_CARD"
     let card_id = (formData.get("card_id") as string) || null
     let paid_at = (formData.get("paid_at") as string) || null
-    const template_id = (formData.get("template_id") as string) || null
+    const recurring_expense_id = (formData.get("recurring_expense_id") as string) || null
     const hiddenModeEnabled = formData.get("hidden_mode_enabled") === "true"
     const is_excluded = hiddenModeEnabled && formData.get("is_excluded") === "true"
 
@@ -325,7 +325,7 @@ export async function createMonthExpense(formData: FormData) {
         payment_method,
         card_id,
         paid_at,
-        template_id,
+        recurring_expense_id,
         is_excluded,
     })
 
