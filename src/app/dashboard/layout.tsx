@@ -20,7 +20,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const monthMetrics = months.length > 0 ? await getMetricsForMonths(months) : []
     const levelByMonth: Record<string, number> = {}
     for (const metric of monthMetrics) {
-        const rawLevel = metric.income_total > 0 ? metric.total_expenses / metric.income_total : 0
+        // Sem receita: se há despesas (totalmente comprometido) → nível = 1;
+        // sem despesas → nível = 0. Com receita, nível = despesas / receita.
+        // Este tratamento especial é crítico: um período sem receita mas com
+        // despesas está totalmente comprometido, não vazio.
+        const rawLevel = metric.income_total > 0
+            ? metric.total_expenses / metric.income_total
+            : metric.total_expenses > 0 ? 1 : 0
         levelByMonth[metric.monthId] = Math.min(1, Math.max(0, rawLevel))
     }
 
