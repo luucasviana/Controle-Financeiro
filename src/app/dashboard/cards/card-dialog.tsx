@@ -26,8 +26,8 @@ export function CardDialog() {
             await createCard(formData)
             toast.success("Cartão adicionado com sucesso!")
             setOpen(false)
-        } catch (e: any) {
-            toast.error(e.message)
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "Não foi possível salvar.")
         } finally {
             setLoading(false)
         }
@@ -36,22 +36,24 @@ export function CardDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="bg-blue-600"><PlusCircle className="mr-2 h-4 w-4" /> Novo Cartão</Button>
+                <Button>
+                    <PlusCircle className="h-4 w-4" /> Novo cartão
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Registrar Cartão</DialogTitle>
+                    <DialogTitle>Registrar cartão</DialogTitle>
                 </DialogHeader>
                 <form action={onSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Nome do Cartão (ex: Nubank)</Label>
+                        <Label htmlFor="name">Nome do cartão (ex: Nubank)</Label>
                         <Input id="name" name="name" required placeholder="Ex: Cartão Inter Nubank" />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="limit_amount">Limite</Label>
                         <CurrencyInput id="limit_amount" name="limit_amount" required placeholder="R$ 0,00" />
                     </div>
-                    <Button type="submit" disabled={loading} className="w-full mt-4">Salvar</Button>
+                    <Button type="submit" disabled={loading} className="mt-4 w-full">Salvar</Button>
                 </form>
             </DialogContent>
         </Dialog>

@@ -15,16 +15,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useMonth } from "@/components/providers/month-provider"
+import type { Database } from "@/lib/database.types"
 import { format } from "date-fns"
 import { CreditCard } from "lucide-react"
 import { toast } from "sonner"
 
+type CardRow = Database["public"]["Tables"]["cards"]["Row"]
+type CardBalanceRow = Database["public"]["Tables"]["card_month_balances"]["Row"]
+
 type UpdateBalanceDialogProps = {
-    cards: any[]
-    balances: any[]
+    cards: CardRow[]
+    balances: CardBalanceRow[]
     trigger?: React.ReactNode
     initialCardId?: string
     lockCardSelection?: boolean
+    /** Quando falso, nenhum gatilho é renderizado — controle a abertura via `open`/`onOpenChange`. */
+    showTrigger?: boolean
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
 export function UpdateBalanceDialog({
@@ -33,8 +41,13 @@ export function UpdateBalanceDialog({
     trigger,
     initialCardId,
     lockCardSelection = false,
+    showTrigger = true,
+    open: externalOpen,
+    onOpenChange: externalOnOpenChange,
 }: UpdateBalanceDialogProps) {
-    const [open, setOpen] = useState(false)
+    const isControlled = externalOpen !== undefined
+    const [internalOpen, setInternalOpen] = useState(false)
+    const open = isControlled ? externalOpen : internalOpen
     const [loading, setLoading] = useState(false)
     const { monthId } = useMonth()
 
@@ -43,6 +56,11 @@ export function UpdateBalanceDialog({
     const [updatedOn, setUpdatedOn] = useState<string>(format(new Date(), "yyyy-MM-dd"))
 
     const activeCardId = lockCardSelection ? (initialCardId || "") : selectedCardId
+
+    function handleOpenChange(value: boolean) {
+        if (!isControlled) setInternalOpen(value)
+        externalOnOpenChange?.(value)
+    }
 
     useEffect(() => {
         if (!open) {
@@ -80,31 +98,33 @@ export function UpdateBalanceDialog({
 
         try {
             await upsertCardMonthBalance(formData)
-            toast.success("Valor do cartão atualizado com sucesso!")
-            setOpen(false)
-        } catch (error: any) {
-            toast.error(error.message)
+            toast.success("Fatura atualizada com sucesso!")
+            handleOpenChange(false)
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "Não foi possível salvar.")
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button variant="outline">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Atualizar valor do cartão
-                    </Button>
-                )}
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            {showTrigger && (
+                <DialogTrigger asChild>
+                    {trigger || (
+                        <Button variant="outline">
+                            <CreditCard className="h-4 w-4" />
+                            Atualizar fatura
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent
                 className="sm:max-w-[425px]"
                 onOpenAutoFocus={(event) => event.preventDefault()}
             >
                 <DialogHeader>
-                    <DialogTitle>Atualizar valor do cartão</DialogTitle>
+                    <DialogTitle>Atualizar fatura</DialogTitle>
                 </DialogHeader>
                 <form action={onSubmit} className="space-y-4">
                     <div className="flex flex-col space-y-2">
@@ -142,7 +162,7 @@ export function UpdateBalanceDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="amount_current">Valor atual</Label>
+                        <Label htmlFor="amount_current">Valor da fatura</Label>
                         <CurrencyInput
                             key={`amount-${activeCardId}-${amountCurrent}`}
                             id="amount_current"
@@ -165,11 +185,11 @@ export function UpdateBalanceDialog({
                         />
                     </div>
 
-                    <p className="mt-2 text-xs text-muted-foreground">
-                        O valor informado será o novo total considerado como gasto no mês.
+                    <p className="mt-2 text-xs text-app-muted">
+                        O valor informado é o total da fatura desse cartão e passa a ser o consumo considerado no mês — não somamos as despesas lançadas nele.
                     </p>
 
-                    <Button type="submit" disabled={loading} className="mt-4 w-full bg-blue-600 hover:bg-blue-700">
+                    <Button type="submit" disabled={loading} className="mt-4 w-full">
                         Salvar
                     </Button>
                 </form>
