@@ -93,44 +93,14 @@ export interface Database {
                 }
                 Relationships: []
             }
-            recurring_expense_templates: {
-                Row: {
-                    id: string
-                    user_id: string
-                    description: string
-                    amount: number
-                    day_of_month: number
-                    is_active: boolean
-                    created_at: string
-                }
-                Insert: {
-                    id?: string
-                    user_id: string
-                    description: string
-                    amount: number
-                    day_of_month: number
-                    is_active?: boolean
-                    created_at?: string
-                }
-                Update: {
-                    id?: string
-                    user_id?: string
-                    description?: string
-                    amount?: number
-                    day_of_month?: number
-                    is_active?: boolean
-                    created_at?: string
-                }
-                Relationships: []
-            }
-            expense_installment_plans: {
+            recurring_expenses: {
                 Row: {
                     id: string
                     user_id: string
                     description: string
                     amount: number
                     due_day: number
-                    total_installments: number
+                    total_occurrences: number | null
                     starts_in_current_month: boolean
                     is_active: boolean
                     is_archived: boolean
@@ -143,7 +113,7 @@ export interface Database {
                     description: string
                     amount: number
                     due_day: number
-                    total_installments: number
+                    total_occurrences?: number | null
                     starts_in_current_month?: boolean
                     is_active?: boolean
                     is_archived?: boolean
@@ -156,7 +126,7 @@ export interface Database {
                     description?: string
                     amount?: number
                     due_day?: number
-                    total_installments?: number
+                    total_occurrences?: number | null
                     starts_in_current_month?: boolean
                     is_active?: boolean
                     is_archived?: boolean
@@ -230,10 +200,9 @@ export interface Database {
                     status: 'PLANNED' | 'PAID'
                     payment_method: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
                     card_id: string | null
-                    template_id: string | null
-                    installment_plan_id: string | null
-                    installment_number: number | null
-                    installment_total: number | null
+                    recurring_expense_id: string | null
+                    occurrence_number: number | null
+                    occurrence_total: number | null
                     paid_at: string | null
                     is_excluded: boolean
                     created_at: string
@@ -248,10 +217,9 @@ export interface Database {
                     status?: 'PLANNED' | 'PAID'
                     payment_method?: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
                     card_id?: string | null
-                    template_id?: string | null
-                    installment_plan_id?: string | null
-                    installment_number?: number | null
-                    installment_total?: number | null
+                    recurring_expense_id?: string | null
+                    occurrence_number?: number | null
+                    occurrence_total?: number | null
                     paid_at?: string | null
                     is_excluded?: boolean
                     created_at?: string
@@ -266,10 +234,9 @@ export interface Database {
                     status?: 'PLANNED' | 'PAID'
                     payment_method?: 'NONE' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
                     card_id?: string | null
-                    template_id?: string | null
-                    installment_plan_id?: string | null
-                    installment_number?: number | null
-                    installment_total?: number | null
+                    recurring_expense_id?: string | null
+                    occurrence_number?: number | null
+                    occurrence_total?: number | null
                     paid_at?: string | null
                     is_excluded?: boolean
                     created_at?: string

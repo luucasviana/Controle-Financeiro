@@ -62,20 +62,19 @@ values ('<SEU_USER_ID>', 'Maio/2026', '2026-05-01', '2026-05-31', 'OPEN');
 insert into public.income_sources (user_id, description, is_active)
 values ('<SEU_USER_ID>', 'Salário', true);
 
-insert into public.recurring_expense_templates (user_id, description, amount, day_of_month, is_active)
-values ('<SEU_USER_ID>', 'Aluguel', 1500.00, 5, true);
-
-insert into public.expense_installment_plans (
-    user_id,
-    description,
-    amount,
-    due_day,
-    total_installments,
-    starts_in_current_month,
-    is_active,
-    base_month_id
+-- Despesa recorrente com prazo (12x)
+insert into public.recurring_expenses (
+    user_id, description, amount, due_day, total_occurrences,
+    starts_in_current_month, is_active, base_month_id
 )
-values ('<SEU_USER_ID>', 'Televisão', 1200.00, 10, 3, false, true, '<SEU_MONTH_ID>');
+values ('<SEU_USER_ID>', 'Televisão', 1200.00, 10, 12, true, true, '<SEU_MONTH_ID>');
+
+-- Despesa recorrente sem prazo (aluguel)
+insert into public.recurring_expenses (
+    user_id, description, amount, due_day, total_occurrences,
+    starts_in_current_month, is_active, base_month_id
+)
+values ('<SEU_USER_ID>', 'Aluguel', 1500.00, 5, null, true, true, '<SEU_MONTH_ID>');
 
 insert into public.cards (user_id, name, limit_amount)
 values ('<SEU_USER_ID>', 'Nubank', 3000.00);
@@ -94,6 +93,7 @@ values ('<SEU_USER_ID>', 'Nubank', 3000.00);
 - Para uma instalação nova, use apenas `supabase.sql`.
 - Se a sua base antiga ainda usa a coluna `month` em vez de `month_id`, ou não possui a tabela `months`, alinhe o banco antes de usar a versão atual do app.
 - `migration_income_per_month.sql` move o valor da receita para a tabela `month_incomes` (um valor por fonte por mês) e faz o backfill do histórico com os valores vigentes na data da migração.
+- `migration_unify_recurring_expenses.sql` funde `recurring_expense_templates` dentro de `recurring_expenses` (antiga `expense_installment_plans`). `total_occurrences` nulo significa recorrência sem prazo definido.
 
 ## Reset de dados
 Na tela de configurações existe uma ação para limpar todos os dados do usuário autenticado sem apagar a conta no Auth. Ela usa a função RPC `clean_user_data`.
