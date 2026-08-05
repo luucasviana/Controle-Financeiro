@@ -1,21 +1,8 @@
 "use server"
 
-import { cache } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { revalidateDashboardData } from "./revalidation"
-
-const getCurrentUserId = cache(async () => {
-    const supabase = await createClient() as any
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-        throw new Error("Unauthorized")
-    }
-
-    return user.id
-})
+import { getCurrentUserId } from "./auth-context"
 
 export async function getCards() {
     const supabase = await createClient() as any
