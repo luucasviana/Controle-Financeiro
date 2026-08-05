@@ -1,7 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { getDashboardShellData } from "@/app/dashboard/data"
+import { getDashboardContext } from "@/app/dashboard/data"
 import { measureServerTiming } from "@/lib/server-timing"
 import type { MonthData } from "./months"
 import {
@@ -9,18 +9,18 @@ import {
     type RecurringExpenseRow,
 } from "./recurring-expense-scheduling"
 
-export async function getProjection() {
+export async function getProjection(monthId?: string) {
     return measureServerTiming("get-projection", async () => {
         const supabase = await createClient()
-        const { defaultMonth, userId } = await getDashboardShellData()
-        if (!defaultMonth) return []
+        const { activeMonth, userId } = await getDashboardContext(monthId)
+        if (!activeMonth) return []
 
         const [{ data: futureMonths }, { data: plans }, { data: generated }] = await Promise.all([
             supabase
                 .from("months")
                 .select("*")
                 .eq("user_id", userId)
-                .gte("start_date", defaultMonth.start_date)
+                .gte("start_date", activeMonth.start_date)
                 .order("start_date", { ascending: true }),
             supabase
                 .from("recurring_expenses")

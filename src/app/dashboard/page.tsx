@@ -51,7 +51,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ mon
             getCards(),
             getCardBalancesByMonth(activeMonth.id),
             getWaterfallData(activeMonth.id),
-            getProjection(),
+            getProjection(activeMonth.id),
             getIncomeEditorRows(activeMonth.id),
             getIncomeSources(),
         ])

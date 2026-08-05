@@ -9,10 +9,11 @@ import { cn, formatCurrency } from "@/lib/utils"
 import { measureServerTiming } from "@/lib/server-timing"
 import { PlusCircle } from "lucide-react"
 
-export default async function ProjectionPage() {
-    const [projection, months] = await measureServerTiming("projection-page", async () =>
-        Promise.all([getProjection(), getMonths()])
-    )
+export default async function ProjectionPage(props: { searchParams: Promise<{ monthId?: string }> }) {
+    const [projection, months] = await measureServerTiming("projection-page", async () => {
+        const searchParams = await props.searchParams
+        return Promise.all([getProjection(searchParams.monthId), getMonths()])
+    })
 
     const rows = projection.map((item, index) => ({
         ...item,
