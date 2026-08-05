@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server"
 import { Database } from "@/lib/database.types"
 import { revalidateDashboardShell } from "./revalidation"
 import { syncRecurringExpensesForMonth } from "./finance"
+import { saveMonthIncomes, type MonthIncomeEntry } from "./month-incomes"
+import { getCurrentUserId } from "./auth-context"
 
 export type MonthData = Database['public']['Tables']['months']['Row']
 
@@ -30,8 +32,8 @@ export async function getMonthById(id: string) {
     return (data || null) as MonthData | null
 }
 
-export async function createMonth(formData: FormData) {
-    const supabase = await createClient() as any
+export async function createMonth(formData: FormData, incomes: MonthIncomeEntry[] = []) {
+    const supabase = await createClient()
     const name = formData.get("name") as string
     const start_date = formData.get("start_date") as string
     const end_date = formData.get("end_date") as string
@@ -54,24 +56,33 @@ export async function createMonth(formData: FormData) {
 
     if (error) throw new Error(error.message)
     if (insertedMonth) {
+        await saveMonthIncomes(insertedMonth.id, incomes)
         await syncRecurringExpensesForMonth(insertedMonth.id)
     }
     revalidateDashboardShell()
 }
 
-export async function updateMonth(id: string, formData: FormData) {
-    const supabase = await createClient() as any
-    const name = formData.get("name") as string
-    const start_date = formData.get("start_date") as string
-    const end_date = formData.get("end_date") as string
+export async function updateMonth(
+    id: string,
+    formData: FormData,
+    incomes: MonthIncomeEntry[] = []
+) {
+    const supabase = await createClient()
+    const userId = await getCurrentUserId()
 
-    const { error } = await supabase.from("months").update({
-        name,
-        start_date,
-        end_date
-    }).eq("id", id)
+    const { error } = await supabase
+        .from("months")
+        .update({
+            name: formData.get("name") as string,
+            start_date: formData.get("start_date") as string,
+            end_date: formData.get("end_date") as string,
+        })
+        .eq("user_id", userId)
+        .eq("id", id)
 
     if (error) throw new Error(error.message)
+
+    await saveMonthIncomes(id, incomes)
     revalidateDashboardShell()
 }
 
