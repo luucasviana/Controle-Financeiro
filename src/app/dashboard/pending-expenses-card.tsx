@@ -316,11 +316,10 @@ export function PendingExpensesCard({
                                     As despesas ainda não pagas, da mais próxima de vencer para a mais distante.
                                 </p>
                                 <p>
-                                    O total soma todas, inclusive as marcadas como{" "}
-                                    <span className="text-app-ink">&quot;fora do cálculo&quot;</span> — a conta
-                                    continua chegando, mesmo que você tenha escolhido não contá-la no orçamento. É
-                                    por isso que esse total pode ser diferente do &quot;Falta pagar&quot; ali em
-                                    cima.
+                                    O total aqui soma as despesas do período que ainda não foram pagas. Já o
+                                    &quot;Falta pagar&quot; ali em cima parte do total do período — que inclui o
+                                    valor das faturas dos cartões — e desconta o que já foi pago. Como são contas
+                                    diferentes, os dois números podem não bater.
                                 </p>
                             </div>
                         </InfoPopover>
