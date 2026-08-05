@@ -333,22 +333,22 @@ export function RecurringExpensesClient({
                                             <DropdownMenuSeparator />
                                             {!plan.is_archived && (
                                                 <DropdownMenuItem onClick={() => setEditingPlan(plan)}>
-                                                    <Edit className="mr-2 h-4 w-4 text-blue-500" />
+                                                    <Edit className="mr-2 h-4 w-4" />
                                                     Editar
                                                 </DropdownMenuItem>
                                             )}
                                             {!plan.is_archived && (
                                                 <DropdownMenuItem
+                                                    variant="destructive"
                                                     onClick={() => handleArchive(plan.id)}
-                                                    className="text-red-600 focus:text-red-600"
                                                 >
                                                     <Archive className="mr-2 h-4 w-4" />
                                                     Arquivar
                                                 </DropdownMenuItem>
                                             )}
                                             <DropdownMenuItem
+                                                variant="destructive"
                                                 onClick={() => handleDelete(plan.id)}
-                                                className="text-red-600 focus:text-red-600"
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 Excluir

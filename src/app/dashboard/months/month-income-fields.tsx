@@ -19,37 +19,37 @@ export function MonthIncomeFields({
 
     if (rows.length === 0) {
         return (
-            <div className="rounded-lg border border-dashed bg-slate-50 px-3 py-4 text-center text-sm text-muted-foreground">
+            <div className="rounded-card border border-dashed border-app-border bg-app-hairline px-3 py-4 text-center text-sm text-app-muted">
                 Nenhuma fonte de receita cadastrada. Cadastre em{" "}
-                <span className="font-medium text-slate-700">Fontes de Receita</span> para informar
+                <span className="font-medium text-app-ink">Fontes de Receita</span> para informar
                 os valores do período.
             </div>
         )
     }
 
     return (
-        <div className="space-y-3 rounded-lg border bg-slate-50 p-3">
+        <div className="space-y-3 rounded-card border border-app-border bg-app-hairline p-3">
             <div className="flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-green-600" />
-                <Label className="text-sm font-semibold text-slate-700">Receitas do período</Label>
+                <Wallet className="h-4 w-4 text-app-accent" />
+                <Label className="text-sm font-medium text-app-ink">Receitas do período</Label>
             </div>
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-app-muted">
                 Os valores vêm do período anterior. Ajuste o que mudou.
             </p>
 
             <div className="space-y-2">
                 {rows.map((row) => (
                     <div key={row.source_id} className="flex items-center gap-3">
-                        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-slate-700">
+                        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-app-ink">
                             <span className="truncate">{row.description}</span>
                             {row.is_hidden && (
-                                <EyeOff className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                <EyeOff className="h-3.5 w-3.5 shrink-0 text-app-faint" />
                             )}
                         </span>
                         <CurrencyInput
                             name={`income-${row.source_id}`}
-                            className="w-36 bg-white"
+                            className="w-36 bg-app-surface"
                             aria-label={`Valor de ${row.description}`}
                             defaultValue={row.amount}
                             onValueChange={(amount) => onChange(row.source_id, amount)}
@@ -58,9 +58,9 @@ export function MonthIncomeFields({
                 ))}
             </div>
 
-            <div className="flex items-center justify-between border-t pt-2 text-sm">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold text-green-700">{formatCurrency(total)}</span>
+            <div className="flex items-center justify-between border-t border-app-border pt-2 text-sm">
+                <span className="text-app-muted">Total</span>
+                <span className="font-medium text-app-ink">{formatCurrency(total)}</span>
             </div>
         </div>
     )

@@ -130,12 +130,12 @@ export function IncomeSourcesClient({ sources: initialSources }: { sources: Inco
                                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem onClick={() => setEditingSource(source)}>
-                                                <Edit className="mr-2 h-4 w-4 text-blue-500" />
+                                                <Edit className="mr-2 h-4 w-4" />
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
+                                                variant="destructive"
                                                 onClick={() => handleDelete(source)}
-                                                className="text-red-600 focus:text-red-600"
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 Excluir
